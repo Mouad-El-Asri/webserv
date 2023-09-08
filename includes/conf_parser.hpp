@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <fstream>
+#include <sstream>
 
 std::ifstream	checkArgs(int argc, char **argv);
 

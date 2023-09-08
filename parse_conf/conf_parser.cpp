@@ -1,4 +1,5 @@
-#include "conf_parser.hpp"
+#include "../includes/conf_parser.hpp"
+#include "../includes/Directives.hpp"
 
 std::ifstream	checkArgs(int argc, char **argv)
 {
@@ -13,4 +14,17 @@ std::ifstream	checkArgs(int argc, char **argv)
 	if (!file.is_open())
 		throw std::runtime_error("Failed to open conf file : " + std::string(confFile) + ".");
 	return (file);
+}
+
+void	readAndCheckConf(std::ifstream &conf)
+{
+	std::string	line;
+	Directives	directives;
+
+	while (std::getline(conf, line))
+	{
+		std::istringstream iss(line);
+		std::string directive, value;
+        iss >> directive >> value;
+	}
 }
