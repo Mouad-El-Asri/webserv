@@ -1,5 +1,6 @@
 #include "../includes/conf_parser.hpp"
 #include "../includes/Directives.hpp"
+#include "../includes/utils.hpp"
 
 std::ifstream	checkArgs(int argc, char **argv)
 {
@@ -8,7 +9,7 @@ std::ifstream	checkArgs(int argc, char **argv)
 	else if (std::string(argv[1]).rfind(".conf") != (std::string(argv[1]).length() - 5))
 		throw std::invalid_argument("Invalid config file extension.");
 
-	std::string confFile = argv[1];
+	char *confFile = argv[1];
 	std::ifstream file(confFile);
 
 	if (!file.is_open())
@@ -16,15 +17,70 @@ std::ifstream	checkArgs(int argc, char **argv)
 	return (file);
 }
 
+void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf)
+{
+	std::string	line;
+	bool fileIsEmpty;
+	
+	fileIsEmpty = true;
+	std::cout << "mouad" << std::endl;
+	while (std::getline(conf, line))
+	{
+		if (line.empty() || isOnlyWhitespaces(line))
+			continue ;
+		removeWhitespaces(line);
+		if (line == "server{")
+		{
+			fileIsEmpty = false;
+			break ;
+		}
+		else
+			throw std::runtime_error("Invalid format in the first line of config file.");
+	}
+	if (fileIsEmpty)
+		throw std::runtime_error("The config file is empty.");
+}
+
 void	readAndCheckConf(std::ifstream &conf)
 {
 	std::string	line;
-	Directives	directives;
+	//Directives	directives;
+	int			endBracketNum;
+	int			startBracketNum;
+	bool		checkServerBlock;
 
+	skipEmptyLinesAndCheckServerBlock(conf);
+	startBracketNum = 1;
+	endBracketNum = 0;
+	checkServerBlock = false;
 	while (std::getline(conf, line))
 	{
-		std::istringstream iss(line);
-		std::string directive, value;
-        iss >> directive >> value;
+		if (line.empty() || isOnlyWhitespaces(line))
+			continue ;
+		if (charIsInString(line, '{'))
+		{
+			removeWhitespaces(line);
+			if (line == "server{")
+				checkServerBlock = true;
+			startBracketNum++;
+			continue ;
+		}
+		if (trimSpaces(line) == "}")
+		{
+			endBracketNum++;
+			if (endBracketNum == startBracketNum && checkServerBlock)
+			{
+				skipEmptyLinesAndCheckServerBlock(conf);
+				startBracketNum++;
+			}
+			continue ;
+		}
+		checkServerBlock = false;
+		line = trimSpaces(line);
+		// std::istringstream iss(line);
+		// std::string directive, value;
+        // iss >> directive >> value;
 	}
+	if (startBracketNum != endBracketNum)
+		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
 }

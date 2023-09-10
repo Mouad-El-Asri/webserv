@@ -1,4 +1,5 @@
 #include "../includes/utils.hpp"
+#include <algorithm>
 
 std::string	trimSpaces(const std::string& str)
 {
@@ -16,4 +17,21 @@ bool	isOnlyWhitespaces(const std::string& str)
             return (0);
     }
     return (1);
+}
+
+void removeWhitespaces(std::string& str)
+{
+    std::string::iterator	it = str.begin();
+    while (it != str.end())
+    {
+        if (std::isspace(*it))
+            it = str.erase(it);
+		else
+        	it++;
+    }
+}
+
+bool	charIsInString(const std::string& str, const char ch)
+{
+    return (str.find(ch) != std::string::npos);
 }

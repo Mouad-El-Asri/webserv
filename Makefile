@@ -2,9 +2,11 @@ NAME = webserv
 
 CPP = c++
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror -std=c++11
 
-SRCS = main.cpp
+SRCS = parse_conf/conf_parser.cpp \
+	parse_conf/utils.cpp \
+	main.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 
@@ -12,9 +14,6 @@ all: $(NAME)
 
 $(NAME): $(OBJS)
 	$(CPP) $(CPPFLAGS) $(OBJS) -o $(NAME)
-
-$(OBJS): $(SRCS)
-	$(CPP) $(CPPFLAGS) -c $(SRCS)
 
 clean:
 	rm -f $(OBJS)

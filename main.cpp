@@ -1,10 +1,11 @@
-#include "parse_conf/conf_parser.hpp"
+#include "includes/conf_parser.hpp"
 
 int	main(int argc, char **argv)
 {
 	try
 	{
-		checkArgs(argc, argv);
+		std::ifstream conf = checkArgs(argc, argv);
+		readAndCheckConf(conf);
 	}
 	catch(const std::exception &e)
 	{
@@ -13,3 +14,4 @@ int	main(int argc, char **argv)
 	}
 	return (0);
 }
+
