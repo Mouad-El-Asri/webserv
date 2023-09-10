@@ -48,10 +48,8 @@ void	readAndCheckConf(std::ifstream &conf)
 	//Directives	directives;
 	int			endBracketNum;
 	int			startBracketNum;
-	bool		checkServerBlock;
 
-	checkServerBlock = false;
-	skipEmptyLinesAndCheckServerBlock(conf, checkServerBlock);
+	skipEmptyLinesAndCheckServerBlock(conf, false);
 	startBracketNum = 1;
 	endBracketNum = 0;
 	while (std::getline(conf, line))
@@ -63,17 +61,14 @@ void	readAndCheckConf(std::ifstream &conf)
 			startBracketNum++;
 			removeWhitespaces(line);
 			if (line == "server{")
-				checkServerBlock = true;
+				skipEmptyLinesAndCheckServerBlock(conf, true);
 			continue ;
 		}
 		if (trimSpaces(line) == "}")
 		{
 			endBracketNum++;
-			if (endBracketNum == startBracketNum && checkServerBlock)
-				skipEmptyLinesAndCheckServerBlock(conf, checkServerBlock);
 			continue ;
 		}
-		checkServerBlock = false;
 		line = trimSpaces(line);
 		// std::istringstream iss(line);
 		// std::string directive, value;
