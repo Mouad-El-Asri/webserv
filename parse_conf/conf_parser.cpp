@@ -17,13 +17,14 @@ std::ifstream	checkArgs(int argc, char **argv)
 	return (file);
 }
 
-void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf)
+void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 {
 	std::string	line;
 	bool fileIsEmpty;
 	
 	fileIsEmpty = true;
-	std::cout << "mouad" << std::endl;
+	if (flag)
+		return ;
 	while (std::getline(conf, line))
 	{
 		if (line.empty() || isOnlyWhitespaces(line))
@@ -49,30 +50,27 @@ void	readAndCheckConf(std::ifstream &conf)
 	int			startBracketNum;
 	bool		checkServerBlock;
 
-	skipEmptyLinesAndCheckServerBlock(conf);
+	checkServerBlock = false;
+	skipEmptyLinesAndCheckServerBlock(conf, checkServerBlock);
 	startBracketNum = 1;
 	endBracketNum = 0;
-	checkServerBlock = false;
 	while (std::getline(conf, line))
 	{
 		if (line.empty() || isOnlyWhitespaces(line))
 			continue ;
 		if (charIsInString(line, '{'))
 		{
+			startBracketNum++;
 			removeWhitespaces(line);
 			if (line == "server{")
 				checkServerBlock = true;
-			startBracketNum++;
 			continue ;
 		}
 		if (trimSpaces(line) == "}")
 		{
 			endBracketNum++;
 			if (endBracketNum == startBracketNum && checkServerBlock)
-			{
-				skipEmptyLinesAndCheckServerBlock(conf);
-				startBracketNum++;
-			}
+				skipEmptyLinesAndCheckServerBlock(conf, checkServerBlock);
 			continue ;
 		}
 		checkServerBlock = false;

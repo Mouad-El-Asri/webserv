@@ -7,7 +7,7 @@
 #include <sstream>
 
 std::ifstream	checkArgs(int argc, char **argv);
-void			skipEmptyLinesAndCheckServerBlock(std::ifstream &conf);
+void			skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag);
 void			readAndCheckConf(std::ifstream &conf);
 
 #endif
