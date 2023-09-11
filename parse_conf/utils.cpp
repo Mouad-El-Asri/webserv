@@ -1,5 +1,4 @@
 #include "../includes/utils.hpp"
-#include <algorithm>
 
 std::string	trimSpaces(const std::string& str)
 {
@@ -34,4 +33,81 @@ void removeWhitespaces(std::string& str)
 bool	charIsInString(const std::string& str, const char ch)
 {
     return (str.find(ch) != std::string::npos);
+}
+
+bool	isIPAddress(const std::string &str)
+{
+	std::istringstream iss(str);
+	std::string segment;
+
+	int	numSegments;
+	int num;
+
+	numSegments = 0;
+	while (std::getline(iss, segment, '.'))
+	{
+		if (!(std::istringstream(segment) >> num))
+			return false;
+
+		if (num < 0 || num > 255)
+			return false;
+
+        numSegments++;
+    }
+
+    return (numSegments == 4);
+}
+
+bool isValidDomainSegment(const std::string &segment)
+{
+    if (segment.empty() || segment.length() > 63)
+        return (false);
+
+    for (int i = 0; i < segment.length(); i++)
+	{
+        if (!std::isalnum(segment[i]) && segment[i] != '-')
+            return (false);
+    }
+
+    if (segment.front() == '-' || segment.back() == '-')
+        return (false);
+
+    return (true);
+}
+
+bool isDomainName(const std::string &str)
+{
+    std::vector<std::string>	segments;
+    std::string					segment;
+
+    for (int i = 0; i < str.length() ; i++)
+	{
+		if (str[i] == '.')
+		{
+            if (!isValidDomainSegment(segment))
+                return (false);
+            segments.push_back(segment);
+            segment.clear();
+        }
+		else
+            segment.push_back(str[i]);
+    }
+
+    if (!isValidDomainSegment(segment))
+        return (false);
+
+    segments.push_back(segment);
+
+    return (!segments.empty());
+}
+
+
+bool isAlphanumeric(const std::string &str)
+{
+    for (int i = 0; i < str.length() ; i++)
+	{
+        if (!std::isalnum(str[i]))
+            return (false);
+    }
+    return (true);
 }

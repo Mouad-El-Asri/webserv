@@ -22,8 +22,8 @@ class Directives
 		std::string	getMaxBodySizeInBytes() const;
 		
     	void setServerName(const std::string& serverName);
-   		void setListen(const std::map<std::string, int>& listen);
-    	void setErrorPages(const std::map<int, std::string>& errorPages);
+   		void setListen(const std::string& key, const int& value);
+    	void setErrorPage(const int& errorCode, const std::string& page);
     	void setMaxBodySizeInBytes(const std::string& maxBodySizeInBytes);
 };
 

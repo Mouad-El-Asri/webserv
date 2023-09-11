@@ -6,6 +6,7 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++11
 
 SRCS = parse_conf/conf_parser.cpp \
 	parse_conf/utils.cpp \
+	parse_conf/Directives.cpp \
 	main.cpp
 
 OBJS = $(SRCS:.cpp=.o)
