@@ -2,15 +2,15 @@
 
 Directives::Directives() 
 {
-	this->serverName = "";
+	this->serverNames.clear();
 	this->listen = {};
 	this->errorPages = {};
 	this->maxBodySizeInBytes = "";
 }
 
-std::string	Directives::getServerName() const
+std::vector<std::string>	Directives::getServerNames() const
 {
-	return (this->serverName);
+	return (this->serverNames);
 }
 
 std::map<std::string, int>	Directives::getListen() const
@@ -31,7 +31,7 @@ std::string	Directives::getMaxBodySizeInBytes() const
 		
 void	Directives::setServerName(const std::string& serverName)
 {
-	this->serverName = serverName;
+	this->serverNames.push_back(serverName);
 }
 
 void	Directives::setListen(const std::string& key, const int& value)

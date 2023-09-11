@@ -47,11 +47,9 @@ bool	isIPAddress(const std::string &str)
 	while (std::getline(iss, segment, '.'))
 	{
 		if (!(std::istringstream(segment) >> num))
-			return false;
-
+			return (false);
 		if (num < 0 || num > 255)
-			return false;
-
+			return (false);
         numSegments++;
     }
 

@@ -4,22 +4,23 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <vector>
 
 class Directives
 {
 	private:
-		std::string serverName;
-		std::map<std::string, int> listen;
-		std::map<int, std::string> errorPages;
-		std::string maxBodySizeInBytes;
+		std::vector<std::string>	serverNames;
+		std::map<std::string, int>	listen;
+		std::map<int, std::string>	errorPages;
+		std::string					maxBodySizeInBytes;
 
 	public:
 		Directives();
 
-		std::string getServerName() const;
-    	std::map<std::string, int> getListen() const;
-    	std::map<int, std::string> getErrorPages() const;
-		std::string	getMaxBodySizeInBytes() const;
+		std::vector<std::string>	getServerNames() const;
+    	std::map<std::string, int>	getListen() const;
+    	std::map<int, std::string>	getErrorPages() const;
+		std::string					getMaxBodySizeInBytes() const;
 		
     	void setServerName(const std::string& serverName);
    		void setListen(const std::string& key, const int& value);
