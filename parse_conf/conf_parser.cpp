@@ -29,6 +29,12 @@ void	checkServerName(Directives &directives, std::istringstream &iss)
 		throw std::runtime_error("The server_name directive is not valid.");
 }
 
+void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
+{
+	Directives	serverblock = serverDirectives;
+	servers.setServer(serverblock);
+}
+
 void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 {
 	std::string	line;
@@ -50,12 +56,6 @@ void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 	}
 	if (fileIsEmpty)
 		throw std::runtime_error("The config file is empty.");
-}
-
-void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
-{
-	Directives	serverblock = serverDirectives;
-	servers.setServer(serverblock);
 }
 
 void	readAndCheckConf(std::ifstream &conf)

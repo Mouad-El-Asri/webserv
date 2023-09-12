@@ -2,7 +2,7 @@
 
 Directives::Directives() 
 {
-	this->serverNames.clear();
+	this->serverNames.push_back("localhost");
 	this->listen = {};
 	this->errorPages = {};
 	this->maxBodySizeInBytes = "";
