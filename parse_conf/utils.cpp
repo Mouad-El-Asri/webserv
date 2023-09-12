@@ -61,7 +61,7 @@ bool isValidDomainSegment(const std::string &segment)
     if (segment.empty() || segment.length() > 63)
         return (false);
 
-    for (int i = 0; i < segment.length(); i++)
+    for (unsigned int i = 0; i < segment.length(); i++)
 	{
         if (!std::isalnum(segment[i]) && segment[i] != '-')
             return (false);
@@ -78,7 +78,7 @@ bool isDomainName(const std::string &str)
     std::vector<std::string>	segments;
     std::string					segment;
 
-    for (int i = 0; i < str.length() ; i++)
+    for (unsigned int i = 0; i < str.length() ; i++)
 	{
 		if (str[i] == '.')
 		{
@@ -102,7 +102,7 @@ bool isDomainName(const std::string &str)
 
 bool isAlphanumeric(const std::string &str)
 {
-    for (int i = 0; i < str.length() ; i++)
+    for (unsigned int i = 0; i < str.length() ; i++)
 	{
         if (!std::isalnum(str[i]))
             return (false);

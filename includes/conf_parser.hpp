@@ -5,10 +5,11 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
+#include "utils.hpp"
 
 std::ifstream	checkArgs(int argc, char **argv);
 void			skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag);
+void			checkServerName(Directives &directives, std::istringstream &iss);
 void			readAndCheckConf(std::ifstream &conf);
-void			checkServerName(Directives&	directives, std::istringstream& iss);
 
 #endif

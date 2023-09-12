@@ -1,6 +1,4 @@
 #include "../includes/conf_parser.hpp"
-#include "../includes/Directives.hpp"
-#include "../includes/utils.hpp"
 
 std::ifstream	checkArgs(int argc, char **argv)
 {
@@ -17,14 +15,26 @@ std::ifstream	checkArgs(int argc, char **argv)
 	return (file);
 }
 
+void	checkServerName(Directives &directives, std::istringstream &iss)
+{
+	std::string value;
+
+	while (std::getline(iss, value, ' '))
+	{
+		value = trimSpaces(value);
+		if (isAlphanumeric(value) || isIPAddress(value) || isDomainName(value))
+			directives.setServerName(value);
+	}
+	if (directives.getServerNames().empty())
+		throw std::runtime_error("The server_name directive is not valid.");
+}
+
 void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 {
 	std::string	line;
 	bool fileIsEmpty;
 	
-	fileIsEmpty = true;
-	if (flag)
-		return ;
+	fileIsEmpty = flag;
 	while (std::getline(conf, line))
 	{
 		if (line.empty() || isOnlyWhitespaces(line))
@@ -33,7 +43,7 @@ void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 		if (line == "server{")
 		{
 			fileIsEmpty = false;
-			break ;
+			readAndCheckConf(conf);
 		}
 		else
 			throw std::runtime_error("Invalid format in the config file.");
@@ -50,7 +60,6 @@ void	readAndCheckConf(std::ifstream &conf)
 	int			startBracketNum;
 	bool		serverBlockIsNotEmpty;
 
-	skipEmptyLinesAndCheckServerBlock(conf, false);
 	serverBlockIsNotEmpty = false;
 	startBracketNum = 1;
 	endBracketNum = 0;
@@ -61,12 +70,6 @@ void	readAndCheckConf(std::ifstream &conf)
 		if (charIsInString(line, '{'))
 		{
 			startBracketNum++;
-			removeWhitespaces(line);
-			if (line == "server{")
-			{
-				skipEmptyLinesAndCheckServerBlock(conf, true);
-				serverBlockIsNotEmpty = false;
-			}
 			continue ;
 		}
 		if (trimSpaces(line) == "}")
@@ -74,6 +77,8 @@ void	readAndCheckConf(std::ifstream &conf)
 			if (!serverBlockIsNotEmpty)
 				throw std::runtime_error("Server block is empty.");
 			endBracketNum++;
+			if (startBracketNum == endBracketNum)
+				skipEmptyLinesAndCheckServerBlock(conf, false);
 			continue ;
 		}
 		serverBlockIsNotEmpty = true;
@@ -88,18 +93,4 @@ void	readAndCheckConf(std::ifstream &conf)
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
-}
-
-void	checkServerName(Directives&	directives, std::istringstream& iss)
-{
-	std::string value;
-
-	while (std::getline(iss, value, ' '))
-	{
-		value = trimSpaces(value);
-		if (isAlphanumeric(value) || isIPAddress(value) || isDomainName(value))
-			directives.setServerName(value);
-	}
-	if (directives.getServerNames().empty())
-		throw std::runtime_error("The server_name directive is not valid.");
 }

@@ -5,7 +5,7 @@ int	main(int argc, char **argv)
 	try
 	{
 		std::ifstream conf = checkArgs(argc, argv);
-		readAndCheckConf(conf);
+		skipEmptyLinesAndCheckServerBlock(conf, true);
 	}
 	catch(const std::exception &e)
 	{
@@ -14,4 +14,3 @@ int	main(int argc, char **argv)
 	}
 	return (0);
 }
-
