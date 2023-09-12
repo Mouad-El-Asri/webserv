@@ -7,6 +7,7 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++11 -fsanitize=address
 SRCS = parse_conf/conf_parser.cpp \
 	parse_conf/utils.cpp \
 	parse_conf/Directives.cpp \
+	parse_conf/Servers.cpp \
 	main.cpp
 
 OBJS = $(SRCS:.cpp=.o)

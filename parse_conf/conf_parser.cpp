@@ -52,15 +52,17 @@ void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 		throw std::runtime_error("The config file is empty.");
 }
 
-void	addAddServerDirectivesToServers(Directives &serverDirectives)
+void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
 {
-
+	Directives	serverblock = serverDirectives;
+	servers.setServer(serverblock);
 }
 
 void	readAndCheckConf(std::ifstream &conf)
 {
 	std::string	line;
 	Directives	serverDirectives;
+	Servers 	servers;
 	int			endBracketNum;
 	int			startBracketNum;
 	bool		serverBlockIsNotEmpty;
@@ -84,7 +86,7 @@ void	readAndCheckConf(std::ifstream &conf)
 			endBracketNum++;
 			if (startBracketNum == endBracketNum)
 			{
-
+				addServerDirectivesToServers(serverDirectives, servers);
 				skipEmptyLinesAndCheckServerBlock(conf, false);
 			}
 			continue ;
@@ -101,4 +103,14 @@ void	readAndCheckConf(std::ifstream &conf)
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
+	std::vector<Directives> serversVec = servers.getServersVec();
+	for (size_t i = 0; i < serversVec.size(); i++) {
+		std::vector<std::string> bbb = serversVec[i].getServerNames();
+		for (size_t j = 0; j < bbb.size(); j++) {
+			std::cout << bbb[j] << std::endl;
+		}
+    }
+	// std::vector<Directives> serversVec = servers.getServersVec();
+	// if (!serversVec.empty())
+    //  	std::cout << serversVec[0].getServerNames()[0] << std::endl;
 }

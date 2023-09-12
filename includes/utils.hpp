@@ -8,6 +8,7 @@
 #include <vector>
 #include <cctype>
 #include "Directives.hpp"
+#include "Servers.hpp"
 
 bool		isOnlyWhitespaces(const std::string& str);
 std::string	trimSpaces(const std::string& str);
