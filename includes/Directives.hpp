@@ -16,6 +16,8 @@ class Directives
 
 	public:
 		Directives();
+		Directives(const Directives& other);
+		Directives&			operator=(const Directives& other);
 
 		std::vector<std::string>	getServerNames() const;
     	std::map<std::string, int>	getListen() const;

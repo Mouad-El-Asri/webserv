@@ -8,6 +8,23 @@ Directives::Directives()
 	this->maxBodySizeInBytes = "";
 }
 
+Directives::Directives(const Directives& other)
+{
+	(*this) = other;
+}
+
+Directives&	Directives::operator=(const Directives &other)
+{
+	if (this != &other)
+	{
+    	this->serverNames = other.serverNames;
+    	this->listen = other.listen;
+    	this->errorPages = other.errorPages;
+    	this->maxBodySizeInBytes = other.maxBodySizeInBytes;
+	}
+	return (*this);
+}
+
 std::vector<std::string>	Directives::getServerNames() const
 {
 	return (this->serverNames);
@@ -43,7 +60,6 @@ void	Directives::setErrorPage(const int& errorCode, const std::string& page)
 {
     this->errorPages[errorCode] = page;
 }
-
 
 void	Directives::setMaxBodySizeInBytes(const std::string& maxBodySizeInBytes)
 {

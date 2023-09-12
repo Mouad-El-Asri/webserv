@@ -52,10 +52,15 @@ void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 		throw std::runtime_error("The config file is empty.");
 }
 
+void	addAddServerDirectivesToServers(Directives &serverDirectives)
+{
+
+}
+
 void	readAndCheckConf(std::ifstream &conf)
 {
 	std::string	line;
-	Directives	directives;
+	Directives	serverDirectives;
 	int			endBracketNum;
 	int			startBracketNum;
 	bool		serverBlockIsNotEmpty;
@@ -78,7 +83,10 @@ void	readAndCheckConf(std::ifstream &conf)
 				throw std::runtime_error("Server block is empty.");
 			endBracketNum++;
 			if (startBracketNum == endBracketNum)
+			{
+
 				skipEmptyLinesAndCheckServerBlock(conf, false);
+			}
 			continue ;
 		}
 		serverBlockIsNotEmpty = true;
@@ -89,7 +97,7 @@ void	readAndCheckConf(std::ifstream &conf)
 		std::getline(iss, directive, ' ');
 		directive = trimSpaces(directive);
 		if (directive == "server_name")
-			checkServerName(directives, iss);
+			checkServerName(serverDirectives, iss);
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
