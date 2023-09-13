@@ -56,7 +56,7 @@ bool	isIPAddress(const std::string &str)
     return (numSegments == 4);
 }
 
-bool isValidDomainSegment(const std::string &segment)
+bool	isValidDomainSegment(const std::string &segment)
 {
     if (segment.empty() || segment.length() > 63)
         return (false);
@@ -67,13 +67,16 @@ bool isValidDomainSegment(const std::string &segment)
             return (false);
     }
 
+	if (isNum(segment))
+		return (false);
+
     if (segment.front() == '-' || segment.back() == '-')
         return (false);
 
     return (true);
 }
 
-bool isDomainName(const std::string &str)
+bool	isDomainName(const std::string &str)
 {
     std::vector<std::string>	segments;
     std::string					segment;
@@ -100,11 +103,57 @@ bool isDomainName(const std::string &str)
 }
 
 
-bool isAlphanumeric(const std::string &str)
+bool	isAlphanumeric(const std::string &str)
 {
+	if (isNum(str))
+		return (false);
     for (unsigned int i = 0; i < str.length() ; i++)
 	{
         if (!std::isalnum(str[i]))
+            return (false);
+    }
+    return (true);
+}
+
+bool	containsWhitespace(const std::string& str)
+{
+    for (std::string::const_iterator it = str.begin(); it != str.end(); it++)
+	{
+        if (std::isspace(static_cast<unsigned char>(*it)))
+            return (true);
+    }
+    return (false);
+}
+
+void	splitString(const std::string& str, std::vector<std::string>& result)
+{
+    std::string substring;
+    result.clear();
+    
+	substring = "";
+	if (str[0] == ':' || str[str.length() - 1] == ':')
+		throw std::runtime_error("The listen directive syntax is invalid.");
+    for (unsigned int i = 0; i < str.size(); i++)
+	{
+        if (str[i] == ':')
+		{
+			result.push_back(substring);
+			substring = "";
+        }
+		else
+			substring += str[i];
+    }
+	if (!substring.empty())
+        result.push_back(substring);
+	if (result.size() != 2)
+		throw std::runtime_error("The listen directive syntax is invalid.");
+}
+
+bool	isNum(const std::string& str)
+{
+    for (size_t i = 0; i < str.length(); i++)
+	{
+        if (!std::isdigit(str[i]))
             return (false);
     }
     return (true);

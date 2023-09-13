@@ -21,12 +21,36 @@ void	checkServerName(Directives &directives, std::istringstream &iss)
 
 	while (std::getline(iss, value, ' '))
 	{
-		value = trimSpaces(value);
-		if (isAlphanumeric(value) || isIPAddress(value) || isDomainName(value))
+		if (!(isOnlyWhitespaces(value)) && !(value.empty()))
+		{
+			value = trimSpaces(value);
+			if (!(isAlphanumeric(value)) && !(isIPAddress(value)) && !(isDomainName(value)))
+				throw std::runtime_error("The server_name directive is not valid.");
 			directives.setServerName(value);
+		}
 	}
 	if (directives.getServerNames().empty())
-		throw std::runtime_error("The server_name directive is not valid.");
+		throw std::runtime_error("The server_name directive value is empty.");
+}
+
+void	checkListen(Directives &directives, std::istringstream &iss)
+{
+	std::string value;
+
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The listen directive valuye is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	if (containsWhitespace(value))
+		throw std::runtime_error("The listen value contains whitespaces.");
+	(void)directives;
+	std::vector<std::string> result;
+	splitString(value, result);
+	if (!isNum(result[1]))
+		throw std::runtime_error("The listen port is not a valid number.");
+	if (!(isAlphanumeric(result[0])) && !(isIPAddress(result[0])) && !(isDomainName(result[0])))
+		throw std::runtime_error("The listen directive host is not valid.");
+	directives.setListen(result[0], atoi(result[1].c_str()));
 }
 
 void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
@@ -100,17 +124,11 @@ void	readAndCheckConf(std::ifstream &conf)
 		directive = trimSpaces(directive);
 		if (directive == "server_name")
 			checkServerName(serverDirectives, iss);
+		else if (directive == "listen")
+			checkListen(serverDirectives, iss);
+		// else if (directive == "error_page")
+		// 	//;
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
-	std::vector<Directives> serversVec = servers.getServersVec();
-	for (size_t i = 0; i < serversVec.size(); i++) {
-		std::vector<std::string> bbb = serversVec[i].getServerNames();
-		for (size_t j = 0; j < bbb.size(); j++) {
-			std::cout << bbb[j] << std::endl;
-		}
-    }
-	// std::vector<Directives> serversVec = servers.getServersVec();
-	// if (!serversVec.empty())
-    //  	std::cout << serversVec[0].getServerNames()[0] << std::endl;
 }

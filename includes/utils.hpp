@@ -18,5 +18,8 @@ bool		isIPAddress(const std::string &str);
 bool		isValidDomainSegment(const std::string &segment);
 bool		isDomainName(const std::string &str);
 bool		isAlphanumeric(const std::string &str);
+bool		containsWhitespace(const std::string& str);
+void		splitString(const std::string& str, std::vector<std::string>& result);
+bool		isNum(const std::string& str);
 
 #endif
