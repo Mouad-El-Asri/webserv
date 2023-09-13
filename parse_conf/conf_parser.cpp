@@ -30,7 +30,7 @@ void	checkServerName(Directives &directives, std::istringstream &iss)
 		}
 	}
 	if (directives.getServerNames().empty())
-		throw std::runtime_error("The server_name directive value is empty.");
+		throw std::runtime_error("The server_name directive value is empty or contains only whitespaces.");
 }
 
 void	checkListen(Directives &directives, std::istringstream &iss)
@@ -43,7 +43,6 @@ void	checkListen(Directives &directives, std::istringstream &iss)
 	value = trimSpaces(value);
 	if (containsWhitespace(value))
 		throw std::runtime_error("The listen value contains whitespaces.");
-	(void)directives;
 	std::vector<std::string> result;
 	splitString(value, result);
 	if (!isNum(result[1]))
@@ -51,6 +50,37 @@ void	checkListen(Directives &directives, std::istringstream &iss)
 	if (!(isAlphanumeric(result[0])) && !(isIPAddress(result[0])) && !(isDomainName(result[0])))
 		throw std::runtime_error("The listen directive host is not valid.");
 	directives.setListen(result[0], atoi(result[1].c_str()));
+}
+
+void	checkRoot(Directives &directives, std::istringstream &iss)
+{
+	std::string path;
+
+	std::getline(iss, path);
+	if (path.empty() || isOnlyWhitespaces(path))
+		throw std::runtime_error("The root path is empty or contains only whitespaces.");
+	path = trimSpaces(path);
+	if (containsWhitespace(path))
+		throw std::runtime_error("The root path contains whitespaces.");
+	if (opendir(path.c_str()) == NULL)
+		throw std::runtime_error("The root path can't be opened due to an error.");
+	directives.setRoot(path);
+}
+
+void	checkIndex(Directives &directives, std::istringstream &iss)
+{
+	std::string index;
+
+	while (std::getline(iss, index, ' '))
+	{
+		if (!(isOnlyWhitespaces(index)) && !(index.empty()))
+		{
+			index = trimSpaces(index);
+			directives.setIndex(index);
+		}
+	}
+	if (directives.getIndex().empty())
+		throw std::runtime_error("The index directive is empty or contains only whitespaces.");
 }
 
 void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
@@ -126,8 +156,10 @@ void	readAndCheckConf(std::ifstream &conf)
 			checkServerName(serverDirectives, iss);
 		else if (directive == "listen")
 			checkListen(serverDirectives, iss);
-		// else if (directive == "error_page")
-		// 	//;
+		else if (directive == "root")
+			checkRoot(serverDirectives, iss);
+		else if (directive == "index")
+			checkIndex(serverDirectives, iss);
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");

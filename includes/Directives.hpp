@@ -13,7 +13,7 @@ class Directives
 		std::map<std::string, int>	listen;
 		std::map<int, std::string>	errorPages;
 		std::string					maxBodySizeInBytes;
-		std::string					index;
+		std::vector<std::string>	index;
 		std::string					root;
 
 	public:
@@ -25,7 +25,7 @@ class Directives
     	std::map<std::string, int>	getListen() const;
     	std::map<int, std::string>	getErrorPages() const;
 		std::string					getMaxBodySizeInBytes() const;
-		std::string					getIndex() const;
+		std::vector<std::string>	getIndex() const;
 		std::string					getRoot() const;
 		
     	void setServerName(const std::string& serverName);

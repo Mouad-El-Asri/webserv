@@ -109,7 +109,7 @@ bool	isAlphanumeric(const std::string &str)
 		return (false);
     for (unsigned int i = 0; i < str.length() ; i++)
 	{
-        if (!std::isalnum(str[i]))
+        if (!std::isalnum(str[i]) && str[i] != '_')
             return (false);
     }
     return (true);
