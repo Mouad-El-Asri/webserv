@@ -158,3 +158,28 @@ bool	isNum(const std::string& str)
     }
     return (true);
 }
+
+std::string removeExtraWhitespace(const std::string &str)
+{
+    std::string result;
+    bool inWhitespace = false;
+
+    for (unsigned int i = 0; i < str.length(); i++)
+	{
+        if (std::isspace(str[i]))
+		{
+            if (!inWhitespace)
+			{
+                result += ' ';
+                inWhitespace = true;
+            }
+        }
+		else
+		{
+            result += str[i];
+            inWhitespace = false;
+        }
+    }
+
+    return (result);
+}

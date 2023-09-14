@@ -21,5 +21,6 @@ bool		isAlphanumeric(const std::string &str);
 bool		containsWhitespace(const std::string& str);
 void		splitString(const std::string& str, std::vector<std::string>& result);
 bool		isNum(const std::string& str);
+std::string removeExtraWhitespace(const std::string &str);
 
 #endif

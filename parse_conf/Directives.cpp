@@ -10,7 +10,7 @@ Directives::Directives()
 	this->errorPages[404] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/404_not_found.html";
 	this->errorPages[500] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/500_internal_service_error.html";
 	this->errorPages[503] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/503_service_unavailable.html";
-	this->maxBodySizeInBytes = "";
+	this->maxBodySizeInBytes = 0;
 	this->index.clear();
 	this->root = "";
 }
@@ -49,7 +49,7 @@ std::map<int, std::string>	Directives::getErrorPages() const
 	return (this->errorPages);
 }
 
-std::string	Directives::getMaxBodySizeInBytes() const
+int	Directives::getMaxBodySizeInBytes() const
 {
 	return (this->maxBodySizeInBytes);
 }
@@ -79,7 +79,7 @@ void	Directives::setErrorPage(const int& errorCode, const std::string& page)
     this->errorPages[errorCode] = page;
 }
 
-void	Directives::setMaxBodySizeInBytes(const std::string& maxBodySizeInBytes)
+void	Directives::setMaxBodySizeInBytes(const int& maxBodySizeInBytes)
 {
 	this->maxBodySizeInBytes = maxBodySizeInBytes;
 }

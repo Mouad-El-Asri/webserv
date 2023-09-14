@@ -15,6 +15,7 @@ void			checkServerName(Directives &directives, std::istringstream &iss);
 void			checkListen(Directives &directives, std::istringstream &iss);
 void			checkRoot(Directives &directives, std::istringstream &iss);
 void			checkIndex(Directives &directives, std::istringstream &iss);
+void			checkMaxBodySize(Directives &directives, std::istringstream &iss);
 void			addServerDirectivesToServers(Directives &serverDirectives, Servers &servers);
 void			readAndCheckConf(std::ifstream &conf);
 

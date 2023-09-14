@@ -35,7 +35,7 @@ void	checkListen(Directives &directives, std::istringstream &iss)
 
 	std::getline(iss, value);
 	if (value.empty() || isOnlyWhitespaces(value))
-		throw std::runtime_error("The listen directive valuye is empty or contains only whitespaces.");
+		throw std::runtime_error("The listen directive value is empty or contains only whitespaces.");
 	value = trimSpaces(value);
 	if (containsWhitespace(value))
 		throw std::runtime_error("The listen value contains whitespaces.");
@@ -77,6 +77,39 @@ void	checkIndex(Directives &directives, std::istringstream &iss)
 	}
 	if (directives.getIndex().empty())
 		throw std::runtime_error("The index directive is empty or contains only whitespaces.");
+}
+
+void	checkMaxBodySize(Directives &directives, std::istringstream &iss)
+{
+	std::string size;
+
+	std::getline(iss, size);
+	std::cout << size << std::endl;
+	if (size.empty() || isOnlyWhitespaces(size))
+		throw std::runtime_error("The client max body size is empty or contains only whitespaces.");
+	size = trimSpaces(size);
+	if (containsWhitespace(size))
+		throw std::runtime_error("The client max body size contains whitespaces.");
+	std::string numericPart = size;
+	std::string suffix;
+    size_t suffixPos = numericPart.find_first_not_of("0123456789");
+    if (suffixPos != std::string::npos)
+	{
+		suffix = numericPart.substr(suffixPos);
+        numericPart = numericPart.substr(0, suffixPos);
+		if (numericPart == "")
+			throw std::runtime_error("The max body size is not valid.");
+		if (suffix == "K" || suffix == "KB")
+			directives.setMaxBodySizeInBytes(atoi(numericPart.c_str()) * 1024);
+		else if (suffix == "M" || suffix == "MB")
+			directives.setMaxBodySizeInBytes(atoi(numericPart.c_str()) * 1024 * 1024);
+		else if (suffix == "G" || suffix == "GB")
+			directives.setMaxBodySizeInBytes(atoi(numericPart.c_str()) * 1024 * 1024 * 1024);
+		else
+			throw std::runtime_error("The max body size suffix is not valid.");
+	}
+	else
+		directives.setMaxBodySizeInBytes(atoi(numericPart.c_str()));
 }
 
 void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
@@ -142,7 +175,7 @@ void	readAndCheckConf(std::ifstream &conf)
 			continue ;
 		}
 		serverBlockIsNotEmpty = true;
-		line = trimSpaces(line);
+		line = removeExtraWhitespace(trimSpaces(line));
 		std::istringstream iss(line);
 		std::string directive;
 
@@ -156,6 +189,8 @@ void	readAndCheckConf(std::ifstream &conf)
 			checkRoot(serverDirectives, iss);
 		else if (directive == "index")
 			checkIndex(serverDirectives, iss);
+		else if (directive == "client_max_body_size")
+			checkMaxBodySize(serverDirectives, iss);
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
