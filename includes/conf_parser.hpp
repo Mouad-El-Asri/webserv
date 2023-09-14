@@ -6,11 +6,10 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include <cstring>
-#include <dirent.h>
+#include <unistd.h>
 #include "utils.hpp"
 
-std::ifstream	checkArgs(int argc, char **argv);
+void			checkArgs(int argc, char **argv, std::ifstream &conf);
 void			skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag);
 void			checkServerName(Directives &directives, std::istringstream &iss);
 void			checkListen(Directives &directives, std::istringstream &iss);

@@ -70,7 +70,7 @@ bool	isValidDomainSegment(const std::string &segment)
 	if (isNum(segment))
 		return (false);
 
-    if (segment.front() == '-' || segment.back() == '-')
+    if (segment[0] == '-' || segment[segment.length() - 1] == '-')
         return (false);
 
     return (true);

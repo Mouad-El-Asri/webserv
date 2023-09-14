@@ -1,18 +1,14 @@
 #include "../includes/conf_parser.hpp"
 
-std::ifstream	checkArgs(int argc, char **argv)
+void	checkArgs(int argc, char **argv, std::ifstream &conf)
 {
 	if (argc != 2)
 		throw std::invalid_argument("Invalid number of arguments.");
 	else if (std::string(argv[1]).rfind(".conf") != (std::string(argv[1]).length() - 5))
 		throw std::invalid_argument("Invalid config file extension.");
 
-	char *confFile = argv[1];
-	std::ifstream file(confFile);
-
-	if (!file.is_open())
-		throw std::runtime_error("Failed to open conf file : " + std::string(confFile) + ".");
-	return (file);
+	if (!conf.is_open())
+		throw std::runtime_error("Failed to open conf file : " + std::string(argv[1]) + ".");
 }
 
 void	checkServerName(Directives &directives, std::istringstream &iss)
@@ -62,7 +58,7 @@ void	checkRoot(Directives &directives, std::istringstream &iss)
 	path = trimSpaces(path);
 	if (containsWhitespace(path))
 		throw std::runtime_error("The root path contains whitespaces.");
-	if (opendir(path.c_str()) == NULL)
+	if (access(path.c_str(), F_OK) != 0)
 		throw std::runtime_error("The root path can't be opened due to an error.");
 	directives.setRoot(path);
 }
