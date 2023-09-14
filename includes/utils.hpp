@@ -7,6 +7,7 @@
 #include <sstream>
 #include <vector>
 #include <cctype>
+#include <dirent.h>
 #include "Directives.hpp"
 #include "Servers.hpp"
 
@@ -22,5 +23,6 @@ bool		containsWhitespace(const std::string& str);
 void		splitString(const std::string& str, std::vector<std::string>& result);
 bool		isNum(const std::string& str);
 std::string removeExtraWhitespace(const std::string &str);
+bool		isDirectory(const char* path);
 
 #endif

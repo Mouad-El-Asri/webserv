@@ -159,6 +159,18 @@ bool	isNum(const std::string& str)
     return (true);
 }
 
+bool	isDirectory(const char* path)
+{
+    DIR* dir = opendir(path);
+    if (dir)
+	{
+        closedir(dir);
+        return (true);
+    }
+	else
+        return (false);
+}
+
 std::string removeExtraWhitespace(const std::string &str)
 {
     std::string result;

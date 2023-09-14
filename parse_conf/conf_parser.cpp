@@ -58,8 +58,8 @@ void	checkRoot(Directives &directives, std::istringstream &iss)
 	path = trimSpaces(path);
 	if (containsWhitespace(path))
 		throw std::runtime_error("The root path contains whitespaces.");
-	if (access(path.c_str(), F_OK) != 0)
-		throw std::runtime_error("The root path can't be opened due to an error.");
+	if (!(isDirectory(path.c_str())))
+		throw std::runtime_error("The root folder doesn't exist.");
 	directives.setRoot(path);
 }
 
@@ -110,6 +110,40 @@ void	checkMaxBodySize(Directives &directives, std::istringstream &iss)
 	}
 	else
 		directives.setMaxBodySizeInBytes(atoi(numericPart.c_str()));
+}
+
+void	checkErrorPages(Directives &directives, std::istringstream &iss)
+{
+	std::string value;
+
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The error_page directive value is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	std::vector<std::string> result;
+	std::string substring;
+	substring = "";
+    for (unsigned int i = 0; i < value.size(); i++)
+	{
+        if (value[i] == ' ')
+		{
+			result.push_back(substring);
+			substring = "";
+        }
+		else
+			substring += value[i];
+    }
+	if (result.size() != 2)
+		throw std::runtime_error("The error_page directive syntax is invalid.");
+	else if (!isNum(result[0]))
+		throw std::runtime_error("The error_page status code is not valid.");
+	else if (atoi(result[0].c_str()) < 100 || atoi(result[0].c_str()) > 599)
+		throw std::runtime_error("The error_page status code range is not valid.");
+	else if (access(result[1].c_str(), F_OK) != 0)
+		throw std::runtime_error("The error_page file doesn't exist.");
+	else if (access(result[1].c_str(), R_OK) != 0)
+		throw std::runtime_error("The error_page file is not readable.");
+	directives.setErrorPage(atoi(result[0].c_str()), result[1]);
 }
 
 void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
@@ -191,6 +225,8 @@ void	readAndCheckConf(std::ifstream &conf)
 			checkIndex(serverDirectives, iss);
 		else if (directive == "client_max_body_size")
 			checkMaxBodySize(serverDirectives, iss);
+		else if (directive == "error_page")
+			checkErrorPages(serverDirectives, iss);
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");
