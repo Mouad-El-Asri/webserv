@@ -84,7 +84,6 @@ void	checkMaxBodySize(Directives &directives, std::istringstream &iss)
 	std::string size;
 
 	std::getline(iss, size);
-	std::cout << size << std::endl;
 	if (size.empty() || isOnlyWhitespaces(size))
 		throw std::runtime_error("The client max body size is empty or contains only whitespaces.");
 	size = trimSpaces(size);
@@ -133,6 +132,8 @@ void	checkErrorPages(Directives &directives, std::istringstream &iss)
 		else
 			substring += value[i];
     }
+	if (!substring.empty())
+        result.push_back(substring);
 	if (result.size() != 2)
 		throw std::runtime_error("The error_page directive syntax is invalid.");
 	else if (!isNum(result[0]))
@@ -144,6 +145,24 @@ void	checkErrorPages(Directives &directives, std::istringstream &iss)
 	else if (access(result[1].c_str(), R_OK) != 0)
 		throw std::runtime_error("The error_page file is not readable.");
 	directives.setErrorPage(atoi(result[0].c_str()), result[1]);
+}
+
+void	checkAutoIndex(Directives &directives, std::istringstream &iss)
+{
+	std::string value;
+
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The autoindex directive is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	if (containsWhitespace(value))
+		throw std::runtime_error("The autoindex value contains whitespaces.");
+	if (value == "on" || value == "ON")
+		directives.setAutoIndex(true);
+	else if (value == "off" || value == "OFF")
+		directives.setAutoIndex(false);
+	else
+		throw std::runtime_error("The autoindex value is not valid.");
 }
 
 void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
@@ -227,6 +246,8 @@ void	readAndCheckConf(std::ifstream &conf)
 			checkMaxBodySize(serverDirectives, iss);
 		else if (directive == "error_page")
 			checkErrorPages(serverDirectives, iss);
+		else if (directive == "autoindex")
+			checkAutoIndex(serverDirectives, iss);
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");

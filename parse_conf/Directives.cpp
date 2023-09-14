@@ -64,6 +64,11 @@ std::string	Directives::getRoot() const
 	return (this->root);
 }
 
+bool	Directives::getAutoIndex() const
+{
+	return (this->autoIndex);
+}
+
 void	Directives::setServerName(const std::string& serverName)
 {
 	this->serverNames.push_back(serverName);
@@ -92,4 +97,9 @@ void	Directives::setIndex(const std::string& index)
 void	Directives::setRoot(const std::string& root)
 {
 	this->root = root;
+}
+
+void	Directives::setAutoIndex(const bool& autoIndex)
+{
+	this->autoIndex = autoIndex;
 }

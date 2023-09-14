@@ -15,6 +15,7 @@ class Directives
 		int							maxBodySizeInBytes;
 		std::vector<std::string>	index;
 		std::string					root;
+		bool						autoIndex;
 
 	public:
 		Directives();
@@ -27,13 +28,15 @@ class Directives
 		int							getMaxBodySizeInBytes() const;
 		std::vector<std::string>	getIndex() const;
 		std::string					getRoot() const;
+		bool						getAutoIndex() const;
 		
-    	void setServerName(const std::string& serverName);
-   		void setListen(const std::string& key, const int& value);
-    	void setErrorPage(const int& errorCode, const std::string& page);
-    	void setMaxBodySizeInBytes(const int& maxBodySizeInBytes);
-    	void setIndex(const std::string& index);
-    	void setRoot(const std::string& root);
+    	void	setServerName(const std::string& serverName);
+   		void	setListen(const std::string& key, const int& value);
+    	void	setErrorPage(const int& errorCode, const std::string& page);
+    	void	setMaxBodySizeInBytes(const int& maxBodySizeInBytes);
+    	void	setIndex(const std::string& index);
+    	void	setRoot(const std::string& root);
+		void	setAutoIndex(const bool& autoIndex);
 };
 
 #endif
