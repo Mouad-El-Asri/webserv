@@ -2,6 +2,7 @@
 #define LOCATIONS_HPP
 
 #include <vector>
+#include <map>
 #include <iostream>
 
 class Locations
@@ -9,7 +10,7 @@ class Locations
 	private:
 		std::string					location;
 		std::string					root;
-		std::vector<std::string>	acceptedMethods;
+		std::map<std::string, bool>	acceptedMethods;
 		std::vector<std::string>	index;
 		bool						autoIndex;
 
@@ -18,13 +19,13 @@ class Locations
 
 		std::string					getLocation() const;
 		std::string					getRoot() const;
-		std::vector<std::string>	getAcceptedMethods() const;
+		std::map<std::string, bool>	getAcceptedMethods() const;
 		std::vector<std::string>	getIndex() const;
 		bool						getAutoIndex() const;
 
 		void	setLocation(const std::string& location);
     	void	setRoot(const std::string& root);
-    	void	setAcceptedMethods(const std::string& index);
+    	void	setAcceptedMethods(const std::string& key, const bool& value);
     	void	setIndex(const std::string& index);
 		void	setAutoIndex(const bool& autoIndex);
 };

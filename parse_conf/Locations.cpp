@@ -1,9 +1,11 @@
-#include "Locations.hpp"
+#include "../includes/Locations.hpp"
 
 Locations::Locations() 
 {
 	this->root = "";
-	this->acceptedMethods.clear();
+	this->acceptedMethods["POST"] = false;
+	this->acceptedMethods["GET"] = false;
+	this->acceptedMethods["DELETE"] = false;
 	this->index.clear();
 	this->autoIndex = false;
 }
@@ -18,7 +20,7 @@ std::string	Locations::getRoot() const
 	return (this->root);
 }
 
-std::vector<std::string> Locations::getAcceptedMethods() const
+std::map<std::string, bool> Locations::getAcceptedMethods() const
 {
 	return (this->acceptedMethods);
 }
@@ -43,9 +45,9 @@ void	Locations::setRoot(const std::string& root)
 	this->root = root;
 }
 
-void	Locations::setAcceptedMethods(const std::string& acceptedMethods)
+void	Locations::setAcceptedMethods(const std::string& key, const bool& value)
 {
-	this->acceptedMethods.push_back(acceptedMethods);
+	this->acceptedMethods[key] = value;
 }
 
 void	Locations::setIndex(const std::string& index)

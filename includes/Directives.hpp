@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "Locations.hpp"
 
 class Directives
 {
@@ -16,6 +17,7 @@ class Directives
 		std::vector<std::string>	index;
 		std::string					root;
 		bool						autoIndex;
+		std::vector<Locations>		locationsVec;
 
 	public:
 		Directives();
@@ -29,6 +31,7 @@ class Directives
 		std::vector<std::string>	getIndex() const;
 		std::string					getRoot() const;
 		bool						getAutoIndex() const;
+		std::vector<Locations>		getLocationsVec() const;
 		
     	void	setServerName(const std::string& serverName);
    		void	setListen(const std::string& key, const int& value);
@@ -37,6 +40,7 @@ class Directives
     	void	setIndex(const std::string& index);
     	void	setRoot(const std::string& root);
 		void	setAutoIndex(const bool& autoIndex);
+		void	setLocation(const Locations& location);
 };
 
 #endif

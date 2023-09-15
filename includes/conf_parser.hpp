@@ -20,5 +20,6 @@ void			checkErrorPages(Directives &directives, std::istringstream &iss);
 void			checkAutoIndex(Directives &directives, std::istringstream &iss);
 void			addServerDirectivesToServers(Directives &serverDirectives, Servers &servers);
 void			readAndCheckConf(std::ifstream &conf);
+void			checkLocation(Directives &directives, Locations &location, std::istringstream &iss, std::string directive);
 
 #endif

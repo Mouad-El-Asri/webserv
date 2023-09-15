@@ -9,6 +9,7 @@
 #include <cctype>
 #include <dirent.h>
 #include "Directives.hpp"
+#include "Locations.hpp"
 #include "Servers.hpp"
 
 bool		isOnlyWhitespaces(const std::string& str);

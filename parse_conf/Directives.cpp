@@ -70,6 +70,11 @@ bool	Directives::getAutoIndex() const
 	return (this->autoIndex);
 }
 
+std::vector<Locations>	Directives::getLocationsVec() const
+{
+	return (this->locationsVec);
+}
+
 void	Directives::setServerName(const std::string& serverName)
 {
 	this->serverNames.push_back(serverName);
@@ -103,4 +108,9 @@ void	Directives::setRoot(const std::string& root)
 void	Directives::setAutoIndex(const bool& autoIndex)
 {
 	this->autoIndex = autoIndex;
+}
+
+void	Directives::setLocation(const Locations& location)
+{
+	this->locationsVec.push_back(location);
 }
