@@ -24,5 +24,6 @@ void		splitString(const std::string& str, std::vector<std::string>& result);
 bool		isNum(const std::string& str);
 std::string removeExtraWhitespace(const std::string &str);
 bool		isDirectory(const char* path);
+bool		isLocationBlock(const std::string& line);
 
 #endif

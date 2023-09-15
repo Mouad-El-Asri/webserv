@@ -229,6 +229,7 @@ void	readAndCheckConf(std::ifstream &conf)
 		}
 		serverBlockIsNotEmpty = true;
 		line = removeExtraWhitespace(trimSpaces(line));
+
 		std::istringstream iss(line);
 		std::string directive;
 

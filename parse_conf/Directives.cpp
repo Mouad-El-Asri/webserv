@@ -13,6 +13,7 @@ Directives::Directives()
 	this->maxBodySizeInBytes = 0;
 	this->index.clear();
 	this->root = "";
+	this->autoIndex = false;
 }
 
 Directives::Directives(const Directives& other)

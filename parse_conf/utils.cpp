@@ -195,3 +195,12 @@ std::string removeExtraWhitespace(const std::string &str)
 
     return (result);
 }
+
+bool	isLocationBlock(const std::string& line)
+{
+	std::string str = "location";
+    if (line.length() >= str.length() && line[line.length() - 1] == '{')
+        return (line.compare(0, str.length(), str) == 0);
+    else
+        return (false);
+}
