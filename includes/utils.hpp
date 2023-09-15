@@ -8,6 +8,7 @@
 #include <vector>
 #include <cctype>
 #include <dirent.h>
+#include <unistd.h>
 #include "Directives.hpp"
 #include "Locations.hpp"
 #include "Servers.hpp"

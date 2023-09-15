@@ -2,9 +2,10 @@ NAME = webserv
 
 CPP = c++
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g3
 
-SRCS = parse_conf/conf_parser.cpp \
+SRCS = parse_conf/check_directives.cpp \
+	parse_conf/conf_parser.cpp \
 	parse_conf/utils.cpp \
 	parse_conf/Directives.cpp \
 	parse_conf/Locations.cpp \
