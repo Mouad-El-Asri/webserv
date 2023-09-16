@@ -12,6 +12,7 @@
 void			checkArgs(char **argv, std::ifstream &conf);
 void	        skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag, Servers &servers);
 void			addServerDirectivesToServers(Directives &serverDirectives, Servers &servers);
+void			addLocationDirectiveToServer(Directives &serverDirectives, Locations &location);
 void	        readAndCheckConf(std::ifstream &conf, Servers &servers);
 void			checkLocation(Locations &location, std::istringstream &iss, std::string directive);
 

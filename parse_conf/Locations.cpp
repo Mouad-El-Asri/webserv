@@ -4,7 +4,9 @@ Locations::Locations()
 {
 	this->location = "";
 	this->root = "";
-	this->acceptedMethods.clear();
+	this->acceptedMethods["POST"] = false;
+	this->acceptedMethods["GET"] = false;
+	this->acceptedMethods["DELETE"] = false;
 	this->index.clear();
 	this->autoIndex = false;
 }
@@ -25,6 +27,17 @@ Locations&	Locations::operator=(const Locations &other)
 		this->autoIndex = other.autoIndex;
 	}
 	return (*this);
+}
+
+void	Locations::clearLocation()
+{
+	this->location = "";
+	this->root = "";
+	this->acceptedMethods["POST"] = false;
+	this->acceptedMethods["GET"] = false;
+	this->acceptedMethods["DELETE"] = false;
+	this->index.clear();
+	this->autoIndex = false;
 }
 
 std::string	Locations::getLocation() const

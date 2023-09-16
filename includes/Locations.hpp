@@ -19,6 +19,8 @@ class Locations
 		Locations(const Locations& other);
 		Locations&			operator=(const Locations& other);
 
+		void	clearLocation();
+
 		std::string					getLocation() const;
 		std::string					getRoot() const;
 		std::map<std::string, bool>	getAcceptedMethods() const;

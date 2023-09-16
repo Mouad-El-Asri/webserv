@@ -15,6 +15,13 @@ void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers
 	servers.setServer(serverblock);
 }
 
+void	addLocationDirectiveToServer(Directives &serverDirectives, Locations &location)
+{
+	Locations	locationBlock = location;
+	serverDirectives.setLocation(locationBlock);
+	location.clearLocation();
+}
+
 void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag, Servers &servers)
 {
 	std::string	line;
@@ -70,7 +77,7 @@ void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 			if (isLocationBlck && !locationBlockIsNotEmpty)
 				throw std::runtime_error("location block is empty.");
 			if (isLocationBlck && locationBlockIsNotEmpty)
-				serverDirectives.setLocation(serverLocations);
+				addLocationDirectiveToServer(serverDirectives, serverLocations);
 			isLocationBlck = false;
 			locationBlockIsNotEmpty = false;
 			endBracketNum++;
