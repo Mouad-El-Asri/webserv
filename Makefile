@@ -5,6 +5,7 @@ CPP = c++
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g3
 
 SRCS = parse_conf/check_directives.cpp \
+	parse_conf/check_location.cpp \
 	parse_conf/conf_parser.cpp \
 	parse_conf/utils.cpp \
 	parse_conf/Directives.cpp \
