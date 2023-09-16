@@ -10,6 +10,7 @@ int	main(int argc, char **argv)
 		std::ifstream conf(argv[1]);
 		checkArgs(argv, conf);
 		skipEmptyLinesAndCheckServerBlock(conf, true, servers);
+		parse_servers(servers);
 	}
 	catch(const std::exception &e)
 	{

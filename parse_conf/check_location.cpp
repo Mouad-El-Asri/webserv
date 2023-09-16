@@ -59,20 +59,20 @@ void	checkLocation(Locations &location, std::istringstream &iss, std::string dir
 				method = trimSpaces(method);
 				if (method == "GET")
 				{
-					if (location.getAcceptedMethods()["GET"] == true)
-						throw std::runtime_error("The GET method value is alraedy set as accepted method.");
+					// if (location.getAcceptedMethods()["GET"] == true)
+					// 	throw std::runtime_error("The GET method value is alraedy set as accepted method.");
 					location.setAcceptedMethods("GET", true);
 				}
 				else if (method == "POST")
 				{
-					if (location.getAcceptedMethods()["POST"] == true)
-						throw std::runtime_error("The POST method value is alraedy set as accepted method.");
+					// if (location.getAcceptedMethods()["POST"] == true)
+					// 	throw std::runtime_error("The POST method value is alraedy set as accepted method.");
 					location.setAcceptedMethods("POST", true);
 				}
 				else if (method == "DELETE")
 				{
-					if (location.getAcceptedMethods()["DELETE"] == true)
-						throw std::runtime_error("The DELETE method value is alraedy set as accepted method.");
+					// if (location.getAcceptedMethods()["DELETE"] == true)
+					// 	throw std::runtime_error("The DELETE method value is alraedy set as accepted method.");
 					location.setAcceptedMethods("DELETE", true);
 				}
 				else
@@ -83,5 +83,5 @@ void	checkLocation(Locations &location, std::istringstream &iss, std::string dir
 			throw std::runtime_error("The location accepted methods directive is empty or contains only whitespaces.");
 	}
 	else
-		throw std::runtime_error("A location directive can't be recognized.");
+		throw std::runtime_error("The location directive contains an unknown or unsupported directive.");
 }

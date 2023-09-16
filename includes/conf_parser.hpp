@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cstdlib>
 #include "check_directives.hpp"
+#include "check_servers.hpp"
 
 void			checkArgs(char **argv, std::ifstream &conf);
 void	        skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag, Servers &servers);

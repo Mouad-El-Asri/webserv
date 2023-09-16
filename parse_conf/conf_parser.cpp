@@ -84,6 +84,9 @@ void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 		serverBlockIsNotEmpty = true;
 		line = trimSpaces(line);
 
+		if (line[0] == '#')
+			continue ;
+
 		std::istringstream iss(line);
 		std::string directive;
 
@@ -99,7 +102,8 @@ void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 				if (locationDirective.empty() || isOnlyWhitespaces(locationDirective) || locationDirective == "{")
 					throw std::runtime_error("The location directive is empty or contains only whitespaces.");
 				locationDirective.resize(locationDirective.length() - 1);
-				locationDirective = trimSpaces(locationDirective);
+				if (!(locationDirective.empty()) && !(isOnlyWhitespaces(locationDirective)))
+					locationDirective = trimSpaces(locationDirective);
 				if (containsWhitespace(locationDirective))
 					throw std::runtime_error("The location directive contains whitespaces.");
 				serverLocations.setLocation(locationDirective);
@@ -122,6 +126,8 @@ void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 			checkErrorPages(serverDirectives, iss);
 		else if (directive == "autoindex")
 			checkAutoIndex(serverDirectives, iss);
+		else
+			throw std::runtime_error("The config file contains an unknown or unsupported directive.");
 	}
 	if (startBracketNum != endBracketNum)
 		throw std::runtime_error("The config file syntax is incorrect, there is no ending bracket.");

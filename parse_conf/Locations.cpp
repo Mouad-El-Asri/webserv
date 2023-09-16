@@ -2,10 +2,9 @@
 
 Locations::Locations() 
 {
+	this->location = "";
 	this->root = "";
-	this->acceptedMethods["POST"] = false;
-	this->acceptedMethods["GET"] = false;
-	this->acceptedMethods["DELETE"] = false;
+	this->acceptedMethods.clear();
 	this->index.clear();
 	this->autoIndex = false;
 }

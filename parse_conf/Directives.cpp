@@ -10,7 +10,7 @@ Directives::Directives()
 	this->errorPages[404] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/404_not_found.html";
 	this->errorPages[500] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/500_internal_service_error.html";
 	this->errorPages[503] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/503_service_unavailable.html";
-	this->maxBodySizeInBytes = 0;
+	this->maxBodySizeInBytes = -1;
 	this->index.clear();
 	this->root = "";
 	this->autoIndex = false;
