@@ -10,6 +10,24 @@ Locations::Locations()
 	this->autoIndex = false;
 }
 
+Locations::Locations(const Locations& other)
+{
+	(*this) = other;
+}
+
+Locations&	Locations::operator=(const Locations &other)
+{
+	if (this != &other)
+	{
+		this->location = other.location;
+		this->root = other.root;
+		this->acceptedMethods = other.acceptedMethods;
+		this->index = other.index;
+		this->autoIndex = other.autoIndex;
+	}
+	return (*this);
+}
+
 std::string	Locations::getLocation() const
 {
 	return (this->location);

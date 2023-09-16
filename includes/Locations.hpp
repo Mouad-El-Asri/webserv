@@ -16,6 +16,8 @@ class Locations
 
 	public:
 		Locations();
+		Locations(const Locations& other);
+		Locations&			operator=(const Locations& other);
 
 		std::string					getLocation() const;
 		std::string					getRoot() const;

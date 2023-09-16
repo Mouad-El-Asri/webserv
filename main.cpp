@@ -5,10 +5,12 @@ int	main(int argc, char **argv)
 	try
 	{
 		Servers 	servers;
-
+		if (argc != 2)
+			throw std::invalid_argument("Invalid number of arguments.");
 		std::ifstream conf(argv[1]);
-		checkArgs(argc, argv, conf);
+		checkArgs(argv, conf);
 		skipEmptyLinesAndCheckServerBlock(conf, true, servers);
+		std::cout << servers.getServersVec()[0].getLocationsVec().size() << std::endl;
 	}
 	catch(const std::exception &e)
 	{

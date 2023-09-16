@@ -1,10 +1,8 @@
 #include "../includes/conf_parser.hpp"
 
-void	checkArgs(int argc, char **argv, std::ifstream &conf)
+void	checkArgs(char **argv, std::ifstream &conf)
 {
-	if (argc != 2)
-		throw std::invalid_argument("Invalid number of arguments.");
-	else if (std::string(argv[1]).rfind(".conf") != (std::string(argv[1]).length() - 5))
+	if (std::string(argv[1]).rfind(".conf") != (std::string(argv[1]).length() - 5))
 		throw std::invalid_argument("Invalid config file extension.");
 
 	if (!conf.is_open())

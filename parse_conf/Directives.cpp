@@ -31,6 +31,8 @@ Directives&	Directives::operator=(const Directives &other)
     	this->maxBodySizeInBytes = other.maxBodySizeInBytes;
 		this->index = other.index;
 		this->root = other.root;
+		this->autoIndex = other.autoIndex;
+		this->locationsVec = other.locationsVec;
 	}
 	return (*this);
 }
