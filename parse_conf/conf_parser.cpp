@@ -11,7 +11,7 @@ void	checkArgs(int argc, char **argv, std::ifstream &conf)
 		throw std::runtime_error("Failed to open conf file : " + std::string(argv[1]) + ".");
 }
 
-void	checkLocation(Directives &directives, Locations &location, std::istringstream &iss, std::string directive)
+void	checkLocation(Locations &location, std::istringstream &iss, std::string directive)
 {
 	if (directive == "root")
 	{
@@ -95,7 +95,6 @@ void	checkLocation(Directives &directives, Locations &location, std::istringstre
 	}
 	else
 		throw std::runtime_error("A location directive can't be recognized.");
-	directives.setLocation(location);
 }
 
 void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers)
@@ -104,7 +103,7 @@ void	addServerDirectivesToServers(Directives &serverDirectives, Servers &servers
 	servers.setServer(serverblock);
 }
 
-void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
+void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag, Servers &servers)
 {
 	std::string	line;
 	bool fileIsEmpty;
@@ -118,7 +117,7 @@ void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 		if (line == "server{")
 		{
 			fileIsEmpty = false;
-			readAndCheckConf(conf);
+			readAndCheckConf(conf, servers);
 		}
 		else
 			throw std::runtime_error("Invalid format in the config file.");
@@ -127,12 +126,11 @@ void	skipEmptyLinesAndCheckServerBlock(std::ifstream &conf, bool flag)
 		throw std::runtime_error("The config file is empty.");
 }
 
-void	readAndCheckConf(std::ifstream &conf)
+void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 {
 	std::string	line;
 	Directives	serverDirectives;
-	Locations	serverLocations;
-	Servers 	servers;
+	Locations 	serverLocations;
 	int			endBracketNum;
 	int			startBracketNum;
 	bool		serverBlockIsNotEmpty;
@@ -159,13 +157,15 @@ void	readAndCheckConf(std::ifstream &conf)
 				throw std::runtime_error("Server block is empty.");
 			if (isLocationBlck && !locationBlockIsNotEmpty)
 				throw std::runtime_error("location block is empty.");
+			if (isLocationBlck && locationBlockIsNotEmpty)
+				serverDirectives.setLocation(serverLocations);
 			isLocationBlck = false;
 			locationBlockIsNotEmpty = false;
 			endBracketNum++;
 			if (startBracketNum == endBracketNum)
 			{
 				addServerDirectivesToServers(serverDirectives, servers);
-				skipEmptyLinesAndCheckServerBlock(conf, false);
+				skipEmptyLinesAndCheckServerBlock(conf, false, servers);
 			}
 			continue ;
 		}
@@ -194,7 +194,7 @@ void	readAndCheckConf(std::ifstream &conf)
 				continue ;
 			}
 			locationBlockIsNotEmpty = true;
-			checkLocation(serverDirectives, serverLocations, iss, directive);
+			checkLocation(serverLocations, iss, directive);
 		}
 		else if (directive == "server_name")
 			checkServerName(serverDirectives, iss);

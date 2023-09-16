@@ -2,13 +2,13 @@
 
 int	main(int argc, char **argv)
 {
-	// (void)argc;
-	// (void)argv;
 	try
 	{
+		Servers 	servers;
+
 		std::ifstream conf(argv[1]);
 		checkArgs(argc, argv, conf);
-		skipEmptyLinesAndCheckServerBlock(conf, true);
+		skipEmptyLinesAndCheckServerBlock(conf, true, servers);
 	}
 	catch(const std::exception &e)
 	{
