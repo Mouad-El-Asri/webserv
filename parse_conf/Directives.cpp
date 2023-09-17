@@ -2,7 +2,7 @@
 
 Directives::Directives() 
 {
-	this->serverNames.clear();
+	this->serverName = "";
 	this->listen = -1;
 	this->errorPages[400] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/400_bad_request.html";
 	this->errorPages[401] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/401_unauthorized.html";
@@ -25,7 +25,7 @@ Directives&	Directives::operator=(const Directives &other)
 {
 	if (this != &other)
 	{
-    	this->serverNames = other.serverNames;
+    	this->serverName = other.serverName;
     	this->listen = other.listen;
     	this->errorPages = other.errorPages;
     	this->maxBodySizeInBytes = other.maxBodySizeInBytes;
@@ -37,9 +37,9 @@ Directives&	Directives::operator=(const Directives &other)
 	return (*this);
 }
 
-std::vector<std::string>	Directives::getServerNames() const
+std::string	Directives::getServerName() const
 {
-	return (this->serverNames);
+	return (this->serverName);
 }
 
 int	Directives::getListen() const
@@ -79,7 +79,7 @@ std::vector<Locations>	Directives::getLocationsVec() const
 
 void	Directives::setServerName(const std::string& serverName)
 {
-	this->serverNames.push_back(serverName);
+	this->serverName = serverName;
 }
 
 void	Directives::setListen(const int& port)

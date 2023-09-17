@@ -10,7 +10,7 @@
 class Directives
 {
 	private:
-		std::vector<std::string>	serverNames;
+		std::string					serverName;
 		int							listen;
 		std::map<int, std::string>	errorPages;
 		int							maxBodySizeInBytes;
@@ -24,7 +24,7 @@ class Directives
 		Directives(const Directives& other);
 		Directives&			operator=(const Directives& other);
 
-		std::vector<std::string>	getServerNames() const;
+		std::string					getServerName() const;
     	int							getListen() const;
     	std::map<int, std::string>	getErrorPages() const;
 		int							getMaxBodySizeInBytes() const;

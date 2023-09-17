@@ -4,6 +4,8 @@ void	checkLocationRoot(Locations &location, std::istringstream &iss)
 {
 	std::string path;
 
+	if (location.getRoot() != "")
+		throw std::runtime_error("The location root directive already exists.");
 	std::getline(iss, path);
 	if (path.empty() || isOnlyWhitespaces(path))
 		throw std::runtime_error("The location root path is empty or contains only whitespaces.");
@@ -19,6 +21,8 @@ void	checkLocationIndex(Locations &location, std::istringstream &iss)
 {
 	std::string index;
 
+	if (!(location.getIndex().empty()))
+		throw std::runtime_error("The location index directive already exists.");
 	while (std::getline(iss, index, ' '))
 	{
 		if (!(isOnlyWhitespaces(index)) && !(index.empty()))
@@ -35,6 +39,8 @@ void	checkLocationAutoIndex(Locations &location, std::istringstream &iss)
 {
 	std::string value;
 
+	if (location.getAutoIndex())
+		throw std::runtime_error("The location autoindex directive already exists.");
 	std::getline(iss, value);
 	if (value.empty() || isOnlyWhitespaces(value))
 		throw std::runtime_error("The location autoindex directive is empty or contains only whitespaces.");
@@ -53,6 +59,20 @@ void	checkLocationAcceptedMethods(Locations &location, std::istringstream &iss)
 {
 	std::string method;
 
+	bool allValuesAreFalse = true;
+
+	std::map<std::string, bool>myMap = location.getAcceptedMethods();
+    std::map<std::string, bool>::iterator it;
+    for (it = myMap.begin(); it != myMap.end(); it++)
+	{
+        if (it->second != false)
+		{
+            allValuesAreFalse = false;
+            break;
+        }
+    }
+	if (!allValuesAreFalse)
+		throw std::runtime_error("The location accepted_methods directive already exists.");
 	while (std::getline(iss, method, ' '))
 	{
 		if (!(isOnlyWhitespaces(method)) && !(method.empty()))

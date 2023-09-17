@@ -4,24 +4,25 @@ void	checkServerName(Directives &directives, std::istringstream &iss)
 {
 	std::string value;
 
-	while (std::getline(iss, value, ' '))
-	{
-		if (!(isOnlyWhitespaces(value)) && !(value.empty()))
-		{
-			value = trimSpaces(value);
-			if (!(isAlphanumeric(value)) && !(isIPAddress(value)) && !(isDomainName(value)))
-				throw std::runtime_error("The server_name directive is not valid.");
-			directives.setServerName(value);
-		}
-	}
-	if (directives.getServerNames().empty())
-		throw std::runtime_error("The server_name directive value is empty or contains only whitespaces.");
+	if (directives.getServerName() != "")
+		throw std::runtime_error("The server_name directive already exists.");
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The server_name directive is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+ 	if (containsWhitespace(value))
+		throw std::runtime_error("The server_name directive contains whitespaces.");
+	if (!(isAlphanumeric(value)) && !(isIPAddress(value)) && !(isDomainName(value)))
+		throw std::runtime_error("The server_name directive is not valid.");
+	directives.setServerName(value);
 }
 
 void	checkListen(Directives &directives, std::istringstream &iss)
 {
 	std::string value;
-
+	
+	if (directives.getListen() != -1)
+		throw std::runtime_error("The listen directive already exists.");
 	std::getline(iss, value);
 	if (value.empty() || isOnlyWhitespaces(value))
 		throw std::runtime_error("The listen directive value is empty or contains only whitespaces.");
@@ -39,6 +40,8 @@ void	checkRoot(Directives &directives, std::istringstream &iss)
 {
 	std::string path;
 
+	if (directives.getRoot() != "")
+		throw std::runtime_error("The root directive already exists.");
 	std::getline(iss, path);
 	if (path.empty() || isOnlyWhitespaces(path))
 		throw std::runtime_error("The root path is empty or contains only whitespaces.");
@@ -54,6 +57,8 @@ void	checkIndex(Directives &directives, std::istringstream &iss)
 {
 	std::string index;
 
+	if (!(directives.getIndex().empty()))
+		throw std::runtime_error("The index directive already exists.");
 	while (std::getline(iss, index, ' '))
 	{
 		if (!(isOnlyWhitespaces(index)) && !(index.empty()))
@@ -70,6 +75,8 @@ void	checkMaxBodySize(Directives &directives, std::istringstream &iss)
 {
 	std::string size;
 
+	if (directives.getMaxBodySizeInBytes() != -1)
+		throw std::runtime_error("The client max body size directive already exists.");
 	std::getline(iss, size);
 	if (size.empty() || isOnlyWhitespaces(size))
 		throw std::runtime_error("The client max body size is empty or contains only whitespaces.");
@@ -138,6 +145,8 @@ void	checkAutoIndex(Directives &directives, std::istringstream &iss)
 {
 	std::string value;
 
+	if (directives.getAutoIndex())
+		throw std::runtime_error("The autoindex directive already exists.");
 	std::getline(iss, value);
 	if (value.empty() || isOnlyWhitespaces(value))
 		throw std::runtime_error("The autoindex directive is empty or contains only whitespaces.");

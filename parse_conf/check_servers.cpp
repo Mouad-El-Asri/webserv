@@ -6,7 +6,7 @@ void	parse_servers(Servers &servers)
 	size_t serversSize = serversVec.size();
 
 	for (size_t i = 0; i < serversSize; i++) {
-		if (serversVec[i].getServerNames().empty())
+		if (serversVec[i].getServerName() == "")
 			serversVec[i].setServerName("localhost");
 		if (serversVec[i].getListen() == -1)
 			throw std::runtime_error("The listen directive doesn't exist.");
