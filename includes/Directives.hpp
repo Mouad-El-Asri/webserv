@@ -11,7 +11,7 @@ class Directives
 {
 	private:
 		std::vector<std::string>	serverNames;
-		std::map<std::string, int>	listen;
+		int							listen;
 		std::map<int, std::string>	errorPages;
 		int							maxBodySizeInBytes;
 		std::vector<std::string>	index;
@@ -25,7 +25,7 @@ class Directives
 		Directives&			operator=(const Directives& other);
 
 		std::vector<std::string>	getServerNames() const;
-    	std::map<std::string, int>	getListen() const;
+    	int							getListen() const;
     	std::map<int, std::string>	getErrorPages() const;
 		int							getMaxBodySizeInBytes() const;
 		std::vector<std::string>	getIndex() const;
@@ -34,7 +34,7 @@ class Directives
 		std::vector<Locations>		getLocationsVec() const;
 		
     	void	setServerName(const std::string& serverName);
-   		void	setListen(const std::string& key, const int& value);
+   		void	setListen(const int& port);
     	void	setErrorPage(const int& errorCode, const std::string& page);
     	void	setMaxBodySizeInBytes(const int& maxBodySizeInBytes);
     	void	setIndex(const std::string& index);

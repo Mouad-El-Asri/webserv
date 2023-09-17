@@ -3,7 +3,7 @@
 Directives::Directives() 
 {
 	this->serverNames.clear();
-	this->listen.clear();
+	this->listen = -1;
 	this->errorPages[400] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/400_bad_request.html";
 	this->errorPages[401] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/401_unauthorized.html";
 	this->errorPages[403] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/403_forbidden.html";
@@ -42,7 +42,7 @@ std::vector<std::string>	Directives::getServerNames() const
 	return (this->serverNames);
 }
 
-std::map<std::string, int>	Directives::getListen() const
+int	Directives::getListen() const
 {
 	return (this->listen);
 }
@@ -82,9 +82,9 @@ void	Directives::setServerName(const std::string& serverName)
 	this->serverNames.push_back(serverName);
 }
 
-void	Directives::setListen(const std::string& key, const int& value)
+void	Directives::setListen(const int& port)
 {
-    this->listen[key] = value;
+    this->listen = port;
 }
 
 void	Directives::setErrorPage(const int& errorCode, const std::string& page)

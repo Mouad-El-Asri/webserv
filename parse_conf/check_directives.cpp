@@ -28,13 +28,11 @@ void	checkListen(Directives &directives, std::istringstream &iss)
 	value = trimSpaces(value);
 	if (containsWhitespace(value))
 		throw std::runtime_error("The listen value contains whitespaces.");
-	std::vector<std::string> result;
-	splitString(value, result);
-	if (!isNum(result[1]))
-		throw std::runtime_error("The listen port is not a valid number.");
-	if (!(isAlphanumeric(result[0])) && !(isIPAddress(result[0])) && !(isDomainName(result[0])))
-		throw std::runtime_error("The listen directive host is not valid.");
-	directives.setListen(result[0], atoi(result[1].c_str()));
+	if (!isNum(value))
+		throw std::runtime_error("The listen port is not a valid positive number.");
+	else if (!(atoi(value.c_str()) >= 0 && atoi(value.c_str()) <= 65535))
+		throw std::runtime_error("The listen port range is not a valid.");
+	directives.setListen(atoi(value.c_str()));
 }
 
 void	checkRoot(Directives &directives, std::istringstream &iss)
