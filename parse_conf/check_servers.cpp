@@ -34,4 +34,20 @@ void	parse_servers(Servers &servers)
 			}
 		}
 	}
+
+	for (size_t i = 0; i < serversSize; i++) {
+		size_t j = i + 1;
+		while (j < serversSize)
+		{
+			if (serversVec[i].getServerName() == serversVec[j].getServerName())
+			{
+				if (serversVec[i].getHost() == serversVec[j].getHost())
+				{
+					if (serversVec[i].getListen() == serversVec[j].getListen())
+						throw std::runtime_error("The server_name, host and port of two different server blocks are identical.");
+				}
+			}
+			j++;
+		}
+	}
 }
