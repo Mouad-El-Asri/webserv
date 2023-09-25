@@ -8,11 +8,13 @@ void	parse_servers(Servers &servers)
 	for (size_t i = 0; i < serversSize; i++) {
 		if (serversVec[i].getServerName() == "")
 			serversVec[i].setServerName("localhost");
+		if (serversVec[i].getHost() == "")
+			throw std::runtime_error("The host directive doesn't exist.");
 		if (serversVec[i].getListen() == -1)
 			throw std::runtime_error("The listen directive doesn't exist.");
 		if (serversVec[i].getMaxBodySizeInBytes() == -1)
 			throw std::runtime_error("The client max body size directive doesn't exist.");
-		else if (serversVec[i].getRoot() == "")
+		if (serversVec[i].getRoot() == "")
 			throw std::runtime_error("The root directive doesn't exist.");
 		if (serversVec[i].getLocationsVec().empty())
 			throw std::runtime_error("No location directive exist in the server block.");

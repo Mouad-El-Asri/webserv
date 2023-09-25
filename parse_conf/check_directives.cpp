@@ -10,11 +10,28 @@ void	checkServerName(Directives &directives, std::istringstream &iss)
 	if (value.empty() || isOnlyWhitespaces(value))
 		throw std::runtime_error("The server_name directive is empty or contains only whitespaces.");
 	value = trimSpaces(value);
- 	if (containsWhitespace(value))
+	if (containsWhitespace(value))
 		throw std::runtime_error("The server_name directive contains whitespaces.");
 	if (!(isAlphanumeric(value)) && !(isIPAddress(value)) && !(isDomainName(value)))
 		throw std::runtime_error("The server_name directive is not valid.");
 	directives.setServerName(value);
+}
+
+void	checkHost(Directives &directives, std::istringstream &iss)
+{
+	std::string value;
+
+	if (directives.getHost() != "")
+		throw std::runtime_error("The host directive already exists.");
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The host directive is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	if (containsWhitespace(value))
+		throw std::runtime_error("The host directive contains whitespaces.");
+	if (!(isAlphanumeric(value)) && !(isIPAddress(value)) && !(isDomainName(value)))
+		throw std::runtime_error("The host directive is not valid.");
+	directives.setHost(value);
 }
 
 void	checkListen(Directives &directives, std::istringstream &iss)

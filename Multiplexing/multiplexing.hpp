@@ -7,6 +7,7 @@
 #include <sstream>
 #include <cstring>
 #include <unistd.h>
+#include <stdlib.h>
 #include "../includes/Servers.hpp"
 
 typedef struct s_client_info {

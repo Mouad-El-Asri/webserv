@@ -121,6 +121,8 @@ void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 		}
 		else if (directive == "server_name")
 			checkServerName(serverDirectives, iss);
+		else if (directive == "host")
+			checkHost(serverDirectives, iss);
 		else if (directive == "listen")
 			checkListen(serverDirectives, iss);
 		else if (directive == "root")
