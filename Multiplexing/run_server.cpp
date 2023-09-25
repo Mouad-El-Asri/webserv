@@ -23,7 +23,35 @@ void	runServer(Servers &servers)
 		for (size_t i = 0; i < serverSockets.size(); i++)
 		{
 			FD_SET(serverSockets[i], &reads);
-			FD_SET(serverSockets[i], &writes);
+			wait_on_clients(serverSockets[i], &clients, reads, writes);
+			if (FD_ISSET(serverSockets[i], &reads))
+			{
+				t_client_info *client = get_client(-1, &clients);
+				client->socket = accept(serverSockets[i], (struct sockaddr*)&(client->address), &(client->address_length));
+				if (client->socket == -1)
+					throw std::runtime_error("Error accepting connection");
+				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
+			}
+
+			t_client_info *client_r = clients;
+			while(client_r)
+			{
+				if (FD_ISSET(client_r->socket, &reads))
+				{
+
+				}
+				client_r = client_r->next;
+			}
+
+			t_client_info *client_w = clients;
+			while(client_w)
+			{
+				if (FD_ISSET(client_w->socket, &writes))
+				{
+
+				}
+				client_w = client_w->next;
+			}
 		}
 	}
 }

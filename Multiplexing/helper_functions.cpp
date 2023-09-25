@@ -64,3 +64,11 @@ void wait_on_clients(int server, t_client_info **clients, fd_set &reads, fd_set 
 	if (result == -1)
 		throw std::runtime_error("select failed with an error.");
 }
+
+std::string	get_client_address(t_client_info *client)
+{
+	char address_buffer[NI_MAXHOST];
+
+	getnameinfo((struct sockaddr*)&client->address, client->address_length, address_buffer, sizeof(address_buffer), NULL, NULL, NI_NUMERICHOST);
+	return (std::string(address_buffer));
+}
