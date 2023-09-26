@@ -131,11 +131,9 @@ void	splitString(const std::string& str, std::vector<std::string>& result)
     result.clear();
     
 	substring = "";
-	if (str[0] == ':' || str[str.length() - 1] == ':')
-		throw std::runtime_error("The listen directive syntax is invalid.");
-    for (unsigned int i = 0; i < str.size(); i++)
+    for (size_t i = 0; i < str.size(); i++)
 	{
-        if (str[i] == ':')
+        if (str[i] == ' ')
 		{
 			result.push_back(substring);
 			substring = "";
@@ -145,8 +143,6 @@ void	splitString(const std::string& str, std::vector<std::string>& result)
     }
 	if (!substring.empty())
         result.push_back(substring);
-	if (result.size() != 2)
-		throw std::runtime_error("The listen directive syntax is invalid.");
 }
 
 bool	isNum(const std::string& str)
@@ -203,4 +199,15 @@ bool	isLocationBlock(const std::string& line)
         return (line.compare(0, str.length(), str) == 0);
     else
         return (false);
+}
+
+bool	hasExtension(const std::string& exec, const std::string& extension)
+{
+    if (exec.length() >= extension.length())
+	{
+        std::string fileExtension = exec.substr(exec.length() - extension.length());
+        if (fileExtension == extension)
+            return (true);
+    }
+    return (false);
 }

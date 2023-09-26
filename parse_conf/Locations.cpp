@@ -10,6 +10,7 @@ Locations::Locations()
 	this->index.clear();
 	this->autoIndex = false;
 	this->Return = "";
+	this->cgi.clear();
 }
 
 Locations::Locations(const Locations& other)
@@ -27,6 +28,7 @@ Locations&	Locations::operator=(const Locations &other)
 		this->index = other.index;
 		this->autoIndex = other.autoIndex;
 		this->Return = other.Return;
+		this->cgi = other.cgi;
 	}
 	return (*this);
 }
@@ -41,6 +43,7 @@ void	Locations::clearLocation()
 	this->index.clear();
 	this->autoIndex = false;
 	this->Return = "";
+	this->cgi.clear();
 }
 
 std::string	Locations::getLocation() const
@@ -73,6 +76,11 @@ std::string	Locations::getReturn() const
 	return (this->Return);
 }
 
+std::map<std::string, std::string>	Locations::getCgi() const
+{
+	return (this->cgi);
+}
+
 void	Locations::setLocation(const std::string& location)
 {
 	this->location = location;
@@ -101,4 +109,9 @@ void	Locations::setAutoIndex(const bool& autoIndex)
 void	Locations::setReturn(const std::string& Return)
 {
 	this->Return = Return;
+}
+
+void	Locations::setCgi(const std::string& key, const std::string& value)
+{
+	this->cgi[key] = value;
 }

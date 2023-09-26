@@ -27,5 +27,6 @@ bool		isNum(const std::string& str);
 std::string removeExtraWhitespace(const std::string &str);
 bool		isDirectory(const char* path);
 bool		isLocationBlock(const std::string& line);
+bool		hasExtension(const std::string& exec, const std::string& extension);
 
 #endif

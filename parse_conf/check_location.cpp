@@ -104,6 +104,24 @@ void	checkLocationAcceptedMethods(Locations &location, std::istringstream &iss)
 		throw std::runtime_error("The location accepted methods directive is empty or contains only whitespaces.");
 }
 
+void	checkLocationCgi(Locations &location, std::istringstream &iss)
+{
+	std::string value;
+
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The location cgi directive is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	std::vector<std::string> result;
+	splitString(value, result);
+	if (result.size() != 2)
+		throw std::runtime_error("The location cgi directive syntax is invalid.");
+	if ((result[0] != ".py" || !hasExtension(result[1], ".py")) && \
+			(result[0] != ".php" || !hasExtension(result[1], ".php")))
+		throw std::runtime_error("The location cgi directive extension is not valid.");
+	location.setCgi(result[0], result[1]);
+}
+
 void	checkLocationReturn(Locations &location, std::istringstream &iss)
 {
 	std::string value;
@@ -137,6 +155,8 @@ void	checkLocation(Locations &location, std::istringstream &iss, std::string dir
 		checkLocationAcceptedMethods(location, iss);
 	else if (directive == "return")
 		checkLocationReturn(location, iss);
+	else if (directive == "cgi")
+		checkLocationCgi(location, iss);
 	else
 		throw std::runtime_error("The location directive contains an unknown or unsupported directive.");
 }

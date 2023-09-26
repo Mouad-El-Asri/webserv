@@ -15,7 +15,7 @@ class Servers
 
 		std::vector<Directives>	getServersVec() const;
 		
-    	void setServer(const Directives& server);
+		void setServer(const Directives& server);
 };
 
 #endif

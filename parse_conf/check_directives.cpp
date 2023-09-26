@@ -131,20 +131,7 @@ void	checkErrorPages(Directives &directives, std::istringstream &iss)
 		throw std::runtime_error("The error_page directive value is empty or contains only whitespaces.");
 	value = trimSpaces(value);
 	std::vector<std::string> result;
-	std::string substring;
-	substring = "";
-    for (unsigned int i = 0; i < value.size(); i++)
-	{
-        if (value[i] == ' ')
-		{
-			result.push_back(substring);
-			substring = "";
-        }
-		else
-			substring += value[i];
-    }
-	if (!substring.empty())
-        result.push_back(substring);
+	splitString(value, result);
 	if (result.size() != 2)
 		throw std::runtime_error("The error_page directive syntax is invalid.");
 	else if (!isNum(result[0]))
