@@ -9,6 +9,7 @@ Locations::Locations()
 	this->acceptedMethods["DELETE"] = false;
 	this->index.clear();
 	this->autoIndex = false;
+	this->Return = "";
 }
 
 Locations::Locations(const Locations& other)
@@ -25,6 +26,7 @@ Locations&	Locations::operator=(const Locations &other)
 		this->acceptedMethods = other.acceptedMethods;
 		this->index = other.index;
 		this->autoIndex = other.autoIndex;
+		this->Return = other.Return;
 	}
 	return (*this);
 }
@@ -38,6 +40,7 @@ void	Locations::clearLocation()
 	this->acceptedMethods["DELETE"] = false;
 	this->index.clear();
 	this->autoIndex = false;
+	this->Return = "";
 }
 
 std::string	Locations::getLocation() const
@@ -65,6 +68,11 @@ bool	Locations::getAutoIndex() const
 	return (this->autoIndex);
 }
 
+std::string	Locations::getReturn() const
+{
+	return (this->Return);
+}
+
 void	Locations::setLocation(const std::string& location)
 {
 	this->location = location;
@@ -88,4 +96,9 @@ void	Locations::setIndex(const std::string& index)
 void	Locations::setAutoIndex(const bool& autoIndex)
 {
 	this->autoIndex = autoIndex;
+}
+
+void	Locations::setReturn(const std::string& Return)
+{
+	this->Return = Return;
 }

@@ -13,11 +13,12 @@ class Locations
 		std::map<std::string, bool>	acceptedMethods;
 		std::vector<std::string>	index;
 		bool						autoIndex;
+		std::string					Return;
 
 	public:
 		Locations();
 		Locations(const Locations& other);
-		Locations&			operator=(const Locations& other);
+		Locations&	operator=(const Locations& other);
 
 		void	clearLocation();
 
@@ -26,12 +27,14 @@ class Locations
 		std::map<std::string, bool>	getAcceptedMethods() const;
 		std::vector<std::string>	getIndex() const;
 		bool						getAutoIndex() const;
+		std::string					getReturn() const;
 
 		void	setLocation(const std::string& location);
     	void	setRoot(const std::string& root);
     	void	setAcceptedMethods(const std::string& key, const bool& value);
     	void	setIndex(const std::string& index);
 		void	setAutoIndex(const bool& autoIndex);
+		void	setReturn(const std::string& Return);
 };
 
 #endif

@@ -104,6 +104,27 @@ void	checkLocationAcceptedMethods(Locations &location, std::istringstream &iss)
 		throw std::runtime_error("The location accepted methods directive is empty or contains only whitespaces.");
 }
 
+void	checkLocationReturn(Locations &location, std::istringstream &iss)
+{
+	std::string value;
+
+	if (location.getReturn() != "")
+		throw std::runtime_error("The location return directive already exists.");
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The location Return directive is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	if (containsWhitespace(value))
+		throw std::runtime_error("The location return directive contains whitespaces.");
+	else if (value[0] != '/')
+		throw std::runtime_error("The location return directive should start with /");
+	for (std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
+        if (!std::isalnum(*it) && (*it) != '/')
+            throw std::runtime_error("The location return directive contains a non alphanum character.");
+    }
+	location.setReturn(value);
+}
+
 void	checkLocation(Locations &location, std::istringstream &iss, std::string directive)
 {
 	if (directive == "root")
@@ -114,6 +135,8 @@ void	checkLocation(Locations &location, std::istringstream &iss, std::string dir
 		checkLocationAutoIndex(location, iss);
 	else if (directive == "accepted_methods")
 		checkLocationAcceptedMethods(location, iss);
+	else if (directive == "return")
+		checkLocationReturn(location, iss);
 	else
 		throw std::runtime_error("The location directive contains an unknown or unsupported directive.");
 }

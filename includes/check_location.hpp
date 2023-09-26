@@ -7,6 +7,7 @@ void	checkLocationRoot(Locations &location, std::istringstream &iss);
 void	checkLocationIndex(Locations &location, std::istringstream &iss);
 void	checkLocationAutoIndex(Locations &location, std::istringstream &iss);
 void	checkLocationAcceptedMethods(Locations &location, std::istringstream &iss);
+void	checkLocationReturn(Locations &location, std::istringstream &iss);
 void	checkLocation(Locations &location, std::istringstream &iss, std::string directive);
 
 #endif
