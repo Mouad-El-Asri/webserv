@@ -200,14 +200,3 @@ bool	isLocationBlock(const std::string& line)
     else
         return (false);
 }
-
-bool	hasExtension(const std::string& exec, const std::string& extension)
-{
-    if (exec.length() >= extension.length())
-	{
-        std::string fileExtension = exec.substr(exec.length() - extension.length());
-        if (fileExtension == extension)
-            return (true);
-    }
-    return (false);
-}

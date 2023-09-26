@@ -11,6 +11,7 @@ Locations::Locations()
 	this->autoIndex = false;
 	this->Return = "";
 	this->cgi.clear();
+	this->uploadStore = "";
 }
 
 Locations::Locations(const Locations& other)
@@ -29,6 +30,7 @@ Locations&	Locations::operator=(const Locations &other)
 		this->autoIndex = other.autoIndex;
 		this->Return = other.Return;
 		this->cgi = other.cgi;
+		this->uploadStore = other.uploadStore;
 	}
 	return (*this);
 }
@@ -44,6 +46,7 @@ void	Locations::clearLocation()
 	this->autoIndex = false;
 	this->Return = "";
 	this->cgi.clear();
+	this->uploadStore = "";
 }
 
 std::string	Locations::getLocation() const
@@ -81,6 +84,11 @@ std::map<std::string, std::string>	Locations::getCgi() const
 	return (this->cgi);
 }
 
+std::string	Locations::getUploadStore() const
+{
+	return (this->uploadStore);
+}
+
 void	Locations::setLocation(const std::string& location)
 {
 	this->location = location;
@@ -114,4 +122,9 @@ void	Locations::setReturn(const std::string& Return)
 void	Locations::setCgi(const std::string& key, const std::string& value)
 {
 	this->cgi[key] = value;
+}
+
+void	Locations::setUploadStore(const std::string& uploadStore)
+{
+	this->uploadStore = uploadStore;
 }

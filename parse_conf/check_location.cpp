@@ -116,9 +116,9 @@ void	checkLocationCgi(Locations &location, std::istringstream &iss)
 	splitString(value, result);
 	if (result.size() != 2)
 		throw std::runtime_error("The location cgi directive syntax is invalid.");
-	if ((result[0] != ".py" || !hasExtension(result[1], ".py")) && \
-			(result[0] != ".php" || !hasExtension(result[1], ".php")))
-		throw std::runtime_error("The location cgi directive extension is not valid.");
+	if ((result[0] != ".py" || result[1] != "/bin/python3") && \
+			(result[0] != ".php" || result[1] != "/bin/php"))
+		throw std::runtime_error("The location cgi directive is not valid.");
 	location.setCgi(result[0], result[1]);
 }
 
@@ -143,6 +143,23 @@ void	checkLocationReturn(Locations &location, std::istringstream &iss)
 	location.setReturn(value);
 }
 
+void	checkLocationUploadStore(Locations &location, std::istringstream &iss)
+{
+	std::string path;
+
+	if (location.getUploadStore() != "")
+		throw std::runtime_error("The location upload_store directive already exists.");
+	std::getline(iss, path);
+	if (path.empty() || isOnlyWhitespaces(path))
+		throw std::runtime_error("The location upload_store path is empty or contains only whitespaces.");
+	path = trimSpaces(path);
+	if (containsWhitespace(path))
+		throw std::runtime_error("The location upload_store path contains whitespaces.");
+	if (!(isDirectory(path.c_str())))
+		throw std::runtime_error("The location upload_store folder doesn't exist.");
+	location.setRoot(path);
+}
+
 void	checkLocation(Locations &location, std::istringstream &iss, std::string directive)
 {
 	if (directive == "root")
@@ -157,6 +174,8 @@ void	checkLocation(Locations &location, std::istringstream &iss, std::string dir
 		checkLocationReturn(location, iss);
 	else if (directive == "cgi")
 		checkLocationCgi(location, iss);
+	else if (directive == "upload_store")
+		checkLocationUploadStore(location, iss);
 	else
 		throw std::runtime_error("The location directive contains an unknown or unsupported directive.");
 }

@@ -15,6 +15,7 @@ class Locations
 		bool								autoIndex;
 		std::string							Return;
 		std::map<std::string, std::string>	cgi;
+		std::string							uploadStore;
 
 	public:
 		Locations();
@@ -30,6 +31,7 @@ class Locations
 		bool								getAutoIndex() const;
 		std::string							getReturn() const;
 		std::map<std::string, std::string>	getCgi() const;
+		std::string							getUploadStore() const;
 
 		void	setLocation(const std::string& location);
 		void	setRoot(const std::string& root);
@@ -38,6 +40,7 @@ class Locations
 		void	setAutoIndex(const bool& autoIndex);
 		void	setReturn(const std::string& Return);
 		void	setCgi(const std::string& key, const std::string& value);
+		void	setUploadStore(const std::string& uploadStore);
 };
 
 #endif
