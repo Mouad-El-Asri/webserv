@@ -32,26 +32,24 @@ void	runServer(Servers &servers)
 					throw std::runtime_error("Error accepting connection");
 				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
+		}
 
-			t_client_info *client_r = clients;
-			while(client_r)
+		t_client_info *client = clients;
+		while(client)
+		{
+			if (FD_ISSET(client->socket, &reads))
 			{
-				if (FD_ISSET(client_r->socket, &reads))
-				{
-
-				}
-				client_r = client_r->next;
+				size_t bytesRead = recv(client->socket, client->request, sizeof(client->request), 0);
 			}
 
-			t_client_info *client_w = clients;
-			while(client_w)
+			if (FD_ISSET(client->socket, &writes))
 			{
-				if (FD_ISSET(client_w->socket, &writes))
-				{
 
-				}
-				client_w = client_w->next;
 			}
+			client = client->next;
 		}
 	}
+	std::cout << "Closing sockets..." << std::endl;
+	for (size_t i = 0; i < serverSockets.size(); i++)
+		close(serverSockets[i]);
 }
