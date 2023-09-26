@@ -26,7 +26,7 @@ void removeWhitespaces(std::string& str)
         if (std::isspace(*it))
             it = str.erase(it);
 		else
-        	it++;
+			it++;
     }
 }
 

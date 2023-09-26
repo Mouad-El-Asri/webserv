@@ -113,6 +113,8 @@ void	readAndCheckConf(std::ifstream &conf, Servers &servers)
 					locationDirective = trimSpaces(locationDirective);
 				if (containsWhitespace(locationDirective))
 					throw std::runtime_error("The location directive contains whitespaces.");
+				else if (locationDirective[0] != '/')
+					throw std::runtime_error("The location directive should start with /.");
 				serverLocations.setLocation(locationDirective);
 				continue ;
 			}
