@@ -14,7 +14,7 @@ typedef struct s_client_info {
 	socklen_t				address_length;
 	struct sockaddr_storage	address;
 	int						socket;
-	char					request[1024 + 1];
+	char					request[1025];
 	size_t					received;
 	s_client_info			*next;
 

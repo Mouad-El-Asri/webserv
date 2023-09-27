@@ -8,7 +8,7 @@ void	runServer(Servers &servers)
 
 	for (size_t i = 0; i < serversVec.size(); i++)
 	{
-		std::string	host = serversVec[i].getServerName();
+		std::string	host = serversVec[i].getHost();
 		int			port = serversVec[i].getListen();
 		serverSockets[i] = createListeningSocket(host, port);
 	}
@@ -39,7 +39,7 @@ void	runServer(Servers &servers)
 		{
 			if (FD_ISSET(client->socket, &reads))
 			{
-				size_t bytesRead = recv(client->socket, client->request, sizeof(client->request), 0);
+				client->received += recv(client->socket, client->request, sizeof(client->request), 0);
 			}
 
 			if (FD_ISSET(client->socket, &writes))

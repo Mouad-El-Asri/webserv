@@ -29,7 +29,7 @@ void	checkHost(Directives &directives, std::istringstream &iss)
 	value = trimSpaces(value);
 	if (containsWhitespace(value))
 		throw std::runtime_error("The host directive contains whitespaces.");
-	if (!(isAlphanumeric(value)) && !(isIPAddress(value)) && !(isDomainName(value)))
+	if (!(isIPAddress(value)))
 		throw std::runtime_error("The host directive is not valid.");
 	directives.setHost(value);
 }
