@@ -39,18 +39,32 @@ void	runServer(Servers &servers)
 		{
 			if (FD_ISSET(client->socket, &reads))
 			{
-				client->received = recv(client->socket, client->request, 1024, 0);
-				// std::cout << "uuuuuuuu\n";
+				client->received += recv(client->socket, client->request, 1024, 0);
+				if (client->received == -1)
+				{
+					std::cerr << "Error reading from client " << get_client_address(client) << "." << std::endl;
+					drop_client(client, &clients);
+				}
+				else if (client->received == 0)
+				{
+					std::cerr << "Client socket " << client->socket << "closed." << std::endl;
+					drop_client(client, &clients);
+				}
+				else
+                    std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
 				handle_Post(client);
 			}
-
-			if (FD_ISSET(client->socket, &writes))
-			{
-				// response(client->socket);
-				std::cout << "dsfsdfsdfsdfdsf\n";
-				// exit(1);
-			}
 			client = client->next;
+		}
+
+		t_client_info *client_write = clients;
+		while(client_write)
+		{
+			if (FD_ISSET(client_write->socket, &writes))
+			{
+
+			}
+			client_write = client_write->next;
 		}
 	}
 	std::cout << "Closing sockets..." << std::endl;
