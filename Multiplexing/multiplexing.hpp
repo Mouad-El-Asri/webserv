@@ -27,7 +27,7 @@ typedef struct s_client_info {
 	struct sockaddr_storage	address;
 	int						socket;
 	char					request[1025];
-	size_t					received;
+	ssize_t					received;
 	size_t					all_received;
 	bool					is_chunked_encoding;
     bool					is_content_length;

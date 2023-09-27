@@ -173,7 +173,7 @@ int ft_my_Post(t_client_info *client)
         
     client->req_body.append(client->request, client->received);
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
-        if (client->req_body.find("\r\n\r\n") + 5 > client->received)
+        if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
             return 0;
         client->is_content_length = true;
     }
@@ -189,7 +189,7 @@ int ft_my_Post(t_client_info *client)
     }
     if (!client->is_chunked_encoding) {
         if (client->req_body.find("Transfer-Encoding: chunked") != std::string::npos) {
-            if (client->req_body.find("\r\n\r\n") + 10 > client->received)
+            if (client->req_body.find("\r\n\r\n") + 10 > (size_t)client->received)
                 return 0;
             client->is_chunked_encoding = true;
             size_t start_pos = client->req_body.find("\r\n\r\n") + 4;
