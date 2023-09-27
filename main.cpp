@@ -1,5 +1,5 @@
 #include "includes/conf_parser.hpp"
-
+#include "Request/POST/ft_Post.hpp"
 int	main(int argc, char **argv)
 {
 	try
@@ -11,6 +11,7 @@ int	main(int argc, char **argv)
 		checkArgs(argv, conf);
 		skipEmptyLinesAndCheckServerBlock(conf, true, servers);
 		parse_servers(servers);
+		runServer(servers);
 	}
 	catch(const std::exception &e)
 	{

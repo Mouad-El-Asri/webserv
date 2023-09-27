@@ -69,6 +69,6 @@ std::string	get_client_address(t_client_info *client)
 {
 	char address_buffer[NI_MAXHOST];
 
-	getnameinfo((struct sockaddr*)&client->address, client->address_length, address_buffer, sizeof(address_buffer), NULL, NULL, NI_NUMERICHOST);
+	getnameinfo((struct sockaddr*)&client->address, client->address_length, address_buffer, sizeof(address_buffer), 0, 0, NI_NUMERICHOST);
 	return (std::string(address_buffer));
 }

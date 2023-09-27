@@ -12,6 +12,10 @@ SRCS = parse_conf/check_directives.cpp \
 	parse_conf/Directives.cpp \
 	parse_conf/Locations.cpp \
 	parse_conf/Servers.cpp \
+	Request/POST/ft_Post.cpp \
+	Multiplexing/run_server.cpp \
+	Multiplexing/helper_functions.cpp \
+	Multiplexing/create_listening_socket.cpp \
 	main.cpp
 
 OBJS = $(SRCS:.cpp=.o)

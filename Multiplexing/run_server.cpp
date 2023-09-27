@@ -1,4 +1,4 @@
-#include "multiplexing.hpp"
+#include "../Request/POST/ft_Post.hpp"
 
 void	runServer(Servers &servers)
 {
@@ -39,12 +39,16 @@ void	runServer(Servers &servers)
 		{
 			if (FD_ISSET(client->socket, &reads))
 			{
-				client->received += recv(client->socket, client->request, sizeof(client->request), 0);
+				client->received = recv(client->socket, client->request, 1024, 0);
+				// std::cout << "uuuuuuuu\n";
+				handle_Post(client);
 			}
 
 			if (FD_ISSET(client->socket, &writes))
 			{
-
+				// response(client->socket);
+				std::cout << "dsfsdfsdfsdfdsf\n";
+				// exit(1);
 			}
 			client = client->next;
 		}
