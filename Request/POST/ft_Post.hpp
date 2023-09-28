@@ -32,7 +32,7 @@ size_t hextodec(const char *s);
 ssize_t get_length(std::string& req);
 void handle_content_length(std::string& req_body, int binary_data_start);
 void handle_chunked_encoding(const std::string& chunked_data);
-std::string& grab_method(std::string& req);
-void handle_Post(t_client_info *client);
+std::string* grab_method(std::string& req);
+int handle_Post(t_client_info *client);
 
 #endif
