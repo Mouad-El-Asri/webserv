@@ -46,8 +46,15 @@ void	runServer(Servers &servers)
 		}
 		int ret;
 		t_client_info *client = clients;
+		int ret = 0;
 		while(client)
 		{
+			if ((ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
+			{
+				if (!FD_ISSET(client->socket, &writes))
+					FD_SET(client->socket, &writes);
+			}
+
 			if (FD_ISSET(client->socket, &tempReads))
 			{
 				client->received = recv(client->socket, client->request, 1024, 0);
@@ -62,15 +69,13 @@ void	runServer(Servers &servers)
 					drop_client(client, &clients);
 				}
 				else
-                    // std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
+                    std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
 				ret = handle_Post(client);
-				(void)ret;
-				if ((client->all_received >= client->bl)) //|| (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos)
+				if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
 				{
 					if (!FD_ISSET(client->socket, &writes))
 						FD_SET(client->socket, &writes);
 				}
-				// std::cout << ret << " ---- " << client->all_received << "------" << client->bl << std::endl;
 			}
 			client = client->next;
 		}
@@ -81,7 +86,6 @@ void	runServer(Servers &servers)
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
 				response(client_write->socket);
-				// drop_client(client_write, &clients);
 			}
 			client_write = client_write->next;
 		}

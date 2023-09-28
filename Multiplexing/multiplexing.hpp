@@ -39,7 +39,7 @@ typedef struct s_client_info {
 	s_client_info			*next;
 	Request					header;
 
-	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), is_chunked_encoding(false), is_content_length(false), times(0),bl(0),finished(false) , next(NULL)
+	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), is_chunked_encoding(false), is_content_length(false), times(0), bl(0), next(NULL)
 	{
         memset(&address, 0, sizeof(address));
 		memset(&request, 0, sizeof(request));
