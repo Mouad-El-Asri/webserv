@@ -1,12 +1,13 @@
 #include "ft_Post.hpp"
 
 
-std::string& grab_method(std::string& req)
+std::string* grab_method(const char *req)
 {  
     
     std::string *ret = new std::string();
-    *ret = req.substr(0, req.find(" "));
-    return *ret;
+    std::string temp = req;
+    *ret = temp.substr(0, temp.find(" "));
+    return ret;
 }
 
 std::string& convert_to_str(size_t len)
@@ -170,8 +171,7 @@ void handle_chunked_encoding(const std::string& chunked_data) {
 int ft_my_Post(t_client_info *client)
 {
     client->all_received+=client->received;
-        
-    client->req_body.append(client->request, client->received);
+    client->req_body.append(client->request, sizeof(client->request));
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
         if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
             return 0;
@@ -198,26 +198,32 @@ int ft_my_Post(t_client_info *client)
     }
     client->binary_data_start = 0;
     client->times++;
-    if (client->is_chunked_encoding && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos) {
+    if ((client->is_chunked_encoding) || (client->is_chunked_encoding && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos)) {
         return 1;
     }
-    if (client->is_content_length && client->all_received >= client->bl)
+    if ((client->is_content_length) || (client->is_content_length && client->all_received >= client->bl))
         return 0;
     return 0;
 }
 
-void handle_Post(t_client_info *client)
+int handle_Post(t_client_info *client)
 {
-    std::string temp;
-    temp.append(client->request, sizeof(client->request));
+    int ret;
+    if (!client)
+        return 2;
     if (client->times == 0)
-		client->header.method = grab_method(temp);
-    if (client->header.method == "POST")
+		client->header.method = grab_method(client->request);
+    if (*client->header.method == "POST")
     {
-	    if (ft_my_Post(client))
+        ret = ft_my_Post(client);
+	    if (ret > 0)
+        {
 		    handle_chunked_encoding(client->req_body);
-        return;
+            return 0;
+        }
+        return 1;
     }
+    return 2;
 }
 
 Request::Request()

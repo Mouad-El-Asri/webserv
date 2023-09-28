@@ -34,7 +34,6 @@ void	drop_client(t_client_info *client, t_client_info **clients)
 		if (*p == client)
 		{
 			*p = client->next;
-			free(client);
 			return ;
 		}
 		p = &(*p)->next;
@@ -54,9 +53,6 @@ void wait_on_clients(int &maxSocket, t_client_info **clients, fd_set &reads, fd_
 	{
 		if (!FD_ISSET(client->socket, &reads))
 			FD_SET(client->socket, &reads);
-    
-		if (!FD_ISSET(client->socket, &writes))
-			FD_SET(client->socket, &writes);
 
 		if (client->socket > maxSocket)
 			maxSocket = client->socket;

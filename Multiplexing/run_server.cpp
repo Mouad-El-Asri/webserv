@@ -44,15 +44,13 @@ void	runServer(Servers &servers)
 				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
 		}
-
+		int ret;
 		t_client_info *client = clients;
 		while(client)
 		{
 			if (FD_ISSET(client->socket, &tempReads))
 			{
-				std::cout << "1" << std::endl;
-				client->received += recv(client->socket, client->request, 1024, 0);
-				std::cout << std::string(client->request) << std::endl;
+				client->received = recv(client->socket, client->request, 1024, 0);
 				if (client->received == -1)
 				{
 					std::cerr << "Error reading from client " << get_client_address(client) << "." << std::endl;
@@ -64,8 +62,15 @@ void	runServer(Servers &servers)
 					drop_client(client, &clients);
 				}
 				else
-                    std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
-				handle_Post(client);
+                    // std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
+				ret = handle_Post(client);
+				(void)ret;
+				if ((client->all_received >= client->bl)) //|| (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos)
+				{
+					if (!FD_ISSET(client->socket, &writes))
+						FD_SET(client->socket, &writes);
+				}
+				// std::cout << ret << " ---- " << client->all_received << "------" << client->bl << std::endl;
 			}
 			client = client->next;
 		}
@@ -75,8 +80,8 @@ void	runServer(Servers &servers)
 		{
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
-				std::cout << "2" << std::endl;
-				exit(1);
+				response(client_write->socket);
+				// drop_client(client_write, &clients);
 			}
 			client_write = client_write->next;
 		}

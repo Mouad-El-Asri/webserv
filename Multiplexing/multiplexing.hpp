@@ -15,7 +15,7 @@ class Request
 {
 public:
     std::string fst_line;
-    std::string method;
+    std::string *method;
     std::string path_dir;
     std::string file_path;
     Request();
@@ -26,7 +26,7 @@ typedef struct s_client_info {
 	socklen_t				address_length;
 	struct sockaddr_storage	address;
 	int						socket;
-	char					request[1025];
+	char					request[1024];
 	ssize_t					received;
 	size_t					all_received;
 	bool					is_chunked_encoding;
@@ -34,11 +34,12 @@ typedef struct s_client_info {
 	size_t					times;
 	size_t					bl;
 	size_t					binary_data_start;
+	bool					finished;
 	std::string				req_body;
 	s_client_info			*next;
 	Request					header;
 
-	s_client_info() : address_length(0), socket(0), request(""), received(0), is_chunked_encoding(false), is_content_length(false), times(0), next(NULL)
+	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), is_chunked_encoding(false), is_content_length(false), times(0),bl(0),finished(false) , next(NULL)
 	{
         memset(&address, 0, sizeof(address));
 		memset(&request, 0, sizeof(request));
