@@ -272,8 +272,17 @@ int ft_my_Post(t_client_info *client)
     return 2;
 }
 
-int handle_Post(t_client_info *client)
+int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &servers, t_client_info *client)
 {
+    Directives working;
+    for (size_t i = 0; i < clientSockets.size(); i++)
+	{
+        if (clientSockets[i] == client->socket)
+        {
+            working = servers[i];
+            break;
+        }
+	}
     int ret;
     if (client->times == 0)
     {

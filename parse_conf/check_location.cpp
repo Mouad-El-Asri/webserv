@@ -134,8 +134,6 @@ void	checkLocationReturn(Locations &location, std::istringstream &iss)
 	value = trimSpaces(value);
 	if (containsWhitespace(value))
 		throw std::runtime_error("The location return directive contains whitespaces.");
-	else if (value[0] != '/')
-		throw std::runtime_error("The location return directive should start with /");
 	for (std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
         if (!std::isalnum(*it) && (*it) != '/')
             throw std::runtime_error("The location return directive contains a non alphanum character.");
@@ -147,7 +145,7 @@ void	checkLocationUploadStore(Locations &location, std::istringstream &iss)
 {
 	std::string path;
 
-	if (location.getUploadStore() != "")
+	if (location.getUploadStore() != "../uploads")
 		throw std::runtime_error("The location upload_store directive already exists.");
 	std::getline(iss, path);
 	if (path.empty() || isOnlyWhitespaces(path))
@@ -157,7 +155,7 @@ void	checkLocationUploadStore(Locations &location, std::istringstream &iss)
 		throw std::runtime_error("The location upload_store path contains whitespaces.");
 	if (!(isDirectory(path.c_str())))
 		throw std::runtime_error("The location upload_store folder doesn't exist.");
-	location.setRoot(path);
+	location.setUploadStore(path);
 }
 
 void	checkLocation(Locations &location, std::istringstream &iss, std::string directive)

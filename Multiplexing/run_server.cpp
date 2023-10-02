@@ -5,6 +5,7 @@ void	runServer(Servers &servers)
 	t_client_info *clients = NULL;
 	std::vector<Directives> serversVec = servers.getServersVec();
 	std::vector<int> serverSockets(serversVec.size());
+	std::vector<int> clientSockets;
 
 	for (size_t i = 0; i < serversVec.size(); i++)
 	{
@@ -41,6 +42,7 @@ void	runServer(Servers &servers)
 				client->socket = accept(serverSockets[i], (struct sockaddr*)&(client->address), &(client->address_length));
 				if (client->socket == -1)
 					throw std::runtime_error("Error accepting connection");
+				clientSockets.push_back(client->socket);
 				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
 		}
@@ -69,7 +71,7 @@ void	runServer(Servers &servers)
 				}
 				else
                     std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
-				ret = handle_Post(client);
+				ret = handle_Post(clientSockets, serversVec, client);
 				if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
 				{
 					if (!FD_ISSET(client->socket, &writes))

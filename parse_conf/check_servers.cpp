@@ -31,8 +31,6 @@ void	parse_servers(Servers &servers)
 						locationsVec[j].getAcceptedMethods()["GET"] == false && \
 						locationsVec[j].getAcceptedMethods()["DELETE"] == false)
 					throw std::runtime_error("The location accepted methods directive doesn't exist.");
-				else if (locationsVec[j].getReturn() == "")
-					throw std::runtime_error("The location return directive doesn't exist.");
 			}
 		}
 	}

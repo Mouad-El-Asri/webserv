@@ -11,7 +11,7 @@ Locations::Locations()
 	this->autoIndex = false;
 	this->Return = "";
 	this->cgi.clear();
-	this->uploadStore = "";
+	this->uploadStore = "../uploads";
 }
 
 Locations::Locations(const Locations& other)
