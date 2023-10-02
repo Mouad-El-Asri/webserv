@@ -16,8 +16,12 @@ SRCS = parse_conf/check_directives.cpp \
 	Multiplexing/run_server.cpp \
 	Multiplexing/helper_functions.cpp \
 	Request/POST/ft_Post.cpp \
+	methods/get.cpp \
+	methods/delete.cpp \
+	methods/send_errors.cpp \
+	methods/handle_file.cpp \
+	methods/handle_folder.cpp \
 	main.cpp
-#methods/get.cpp methods/delete.cpp methods/send_errors.cpp methods/handle_file.cpp methods/handle_folder.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 

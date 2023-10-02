@@ -1,11 +1,3 @@
-/*
- * Filename: /nfs/homes/abouzanb/Desktop/webservee/methods/handle_folder.cpp
- * Path: /nfs/homes/abouzanb
- * Created Date: Thursday, January 1st 1970, 12:00:00 am
- * Author: Anas Bouzanbil
- * 
- * Copyright (c) 2023 Your Company
- */
 
 #include "get.hpp"
 

@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include "../includes/Servers.hpp"
+#include "../methods/get.hpp"
 
 class Request
 {
@@ -38,14 +39,24 @@ typedef struct s_client_info {
 	size_t					binary_data_start;
 	bool					finished;
 	std::string				req_body;
-	s_client_info			*next;
 	Request					header;
+	// elhazin
+	std::string				method;
+	Directives				*data;
+	info* 					Info;
+
+	s_client_info			*next;
 
 	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), is_chunked_encoding(false), is_content_length(false), is_multipart(false), times(0), bl(0), next(NULL)
 	{
+		Info = new info;
         memset(&address, 0, sizeof(address));
 		memset(&request, 0, sizeof(request));
     }
+	~s_client_info()
+	{
+		delete Info;
+	}
 }	t_client_info;
 
 int				createListeningSocket(std::string &host, int &port);

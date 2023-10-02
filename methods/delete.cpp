@@ -1,15 +1,24 @@
 #include "get.hpp"
 
-ft_delete::ft_delete(Directives k, std::string l, info &inf) : method_get(k, l,inf)
+ft_delete::ft_delete(Directives& k, std::string l, info &inf) : method_get(k, l,inf)
 {
     this->keep = k;
     this->url = l;
     this->infa = inf;
+    try 
+ {
     this->location_check();
     this->check_stat();
     infa.buffer_to_send = extansion_handling["html"];
     infa.buffer_to_send = "HTTP/1.1 204 No Content\r\n\r\n";
     infa.status = 1;
+
+}
+catch (std::exception &e)
+{
+    infa.status = 1;
+    return ;
+}
 }
 
 void ft_delete::remove_them(std::string path)
@@ -77,6 +86,7 @@ void ft_delete::check_stat()
 	else
     {
         set_error_404();
+        std::cout << "path:444444444444444444 " << path << std::endl;
         throw std::exception();
     }
 }

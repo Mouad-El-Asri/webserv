@@ -2,6 +2,30 @@
 #define P 8081
  
 
+
+// void Cgi_handling(std::string& path, info &inf)
+// {
+// 	struct stat st;
+// 	std::string cgi;
+	
+// 	if (path.find(".php") != std::string::npos)
+// 	{
+// 		cgi = path.substr(path.find(".php") + 4, path.size());
+// 		path = path.substr(0, path.find(".php") + 4);
+// 		if (path.find("?") != std::string::npos)
+// 		{
+// 			cgi = path.substr(path.find("?") + 1, path.size());
+// 			path = path.substr(0, path.find("?"));
+// 		}
+// 	}
+// 	else if (path.find(".py") != std::string::npos)
+// 	{
+// 		cgi = path.substr(path.find(".py") + 3, path.size());
+// 		path = path.substr(0, path.find(".py") + 3);
+// 	}
+// }
+
+
 void method_get::check_location()
 {
 	int forbidden = 0;
@@ -21,6 +45,12 @@ void method_get::check_location()
 				this->index = keep.getLocationsVec()[i].getIndex();
 				this->route = keep.getLocationsVec()[i].getRoot();
 				path = route + url.substr(size, url.size());
+				// if (keep.getLocationsVec()[i].getReturn() != "")
+				// {
+				// 	this->infa.buffer_to_send = "HTTP/1.1 " + keep.getLocationsVec()[i].getReturn() + "\nContent-Type: text/html\nContent-Length: 0\n\n";
+				// 	this->infa.status = 1;
+				// 	throw std::exception();					
+				// }
 				is_checked = 1;
 				forbidden = 0;
 			}
@@ -75,7 +105,7 @@ void method_get::get_check_path()
 }
 
 
-method_get::method_get(Directives k , std::string url, info &inf) : infa(inf)
+method_get::method_get(Directives& k , std::string url, info &inf) : infa(inf) , keep(k)
 {
 	this->keep = k;
 	std::string route = k.getRoot();
@@ -102,12 +132,11 @@ method_get::method_get(Directives k , std::string url, info &inf) : infa(inf)
 }
 
 
-void ft_get(Directives data, std::string url,  info &socket)
+void ft_get(Directives &data, std::string url,  info &socket)
 {
-	// if (socket.was_read == 1)
-	// 	return ;
-std::cout << url << std::endl;
-	method_get get(data,url,  socket);
+	if (socket.was_read == 1)
+		return ;
+	method_get get(data, url,  socket);
 	get.get_check_path();
 	socket.was_read = 1;
 }
@@ -123,147 +152,40 @@ void close_socket(std::vector<info> &clientes, size_t& i , fd_set &writefds, fd_
 	clientes.erase(clientes.begin() + i);
 }
 
-void get_response(std::vector<info> &clientes, size_t& i , fd_set &writefds, fd_set &readfds)
+void get_response(info &clientes)
 {
+	std::cout << "iam here " << std::endl;
 	char bu[1025];
-	if (clientes[i].status == 1)
+	if (clientes.status == 1)
 	{
-		std::cout << "|||"<< clientes[i].buffer_to_send << "|| "<< std::endl;
-		if (send(clientes[i].socket, clientes[i].buffer_to_send.c_str(), clientes[i].buffer_to_send.size(), 0) <= 0)
-		{
-			std::cout  <<"FAILED TO SEND" << std::endl;
-			close_socket(clientes, i, writefds , readfds);
-			return ;
-		}
-			clientes[i].status = 0;
+		send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0);
+		std::cout << "|||"<< clientes.buffer_to_send << "|| "<< std::endl;
+		// if (send( <= 0)
+		// {
+		// 	std::cout  <<"FAILED TO SEND" << std::endl;
+		// 	close_socket(clientes, i, writefds , readfds);
+		// 	return ;
+		// }
+			clientes.status = 0;
 	}
-	if (clientes[i].file &&  !clientes[i].file->eof())
+	if (clientes.file &&  !clientes.file->eof())
 	{
-		clientes[i].file->read(bu, 1024);
-		int count = clientes[i].file->gcount();
+		clientes.file->read(bu, 1024);
+		int count = clientes.file->gcount();
 		if (count <= 0)
 		{
-			close_socket(clientes, i, writefds , readfds);
+			std::cout << "error in reading file" << std::endl;
+			// close_socket(clientes, i, writefds , readfds);
 			return ;
 		}
-		if (send(clientes[i].socket, bu, count, 0) <= 0)
+		if (send(clientes.socket, bu, count, 0) < 0)
 		{
-			close_socket(clientes, i, writefds , readfds);
+			std::cout << clientes.socket << std::endl;
+			std::cout <<"FAILED TO SEND" << std::endl;
+			// close_socket(clientes, i, writefds , readfds);
 			return ;
 		}		
 	}
-	else
-		close_socket(clientes, i, writefds , readfds);
-}
-
-int main()
-{
-	try {
-        std::cout << "akojha   aloha "<< std::endl;
-	std::ifstream conf("/nfs/homes/abouzanb/Desktop/cloned_webserver/conf/default.conf");
-	Servers 	servers;
-	skipEmptyLinesAndCheckServerBlock(conf, true, servers);
-	parse_servers(servers);
-    // Directives a = servers.getServersVec()[0];
-	char bu[1024];
-	std::map<std::string, std::string> data;
-	std::vector<info> clientes; 
-	struct sockaddr_in addr;
-	fd_set readfds,  writefds;
-	int socket_cl; 
-	int opt = 1;
-	signal(SIGPIPE, SIG_IGN);
-
-	FD_ZERO(&readfds);
-	FD_ZERO(&writefds);
-	int server = socket(AF_INET, SOCK_STREAM, 0);
-	setsockopt(server, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(P);
-	addr.sin_addr.s_addr = INADDR_ANY;
-	bind(server, (sockaddr *)&addr, sizeof(addr));
-	listen(server, 20);
-
-	data["rote"] = servers.getServersVec()[0].getRoot();
-
-    FD_SET(server, &readfds);
-	FD_SET(server, &writefds);
-	int max_fd = server;
-	while (1)
-	{
-	 fd_set temp_read = readfds; 
-	 fd_set temp_write = writefds;
-			
-	 int ret = select(max_fd + 1, &temp_read, &temp_write, NULL, NULL);
-
-
-	 if (ret < 0)
-	 {
-		 std::cout << "error select" << std::endl;
-		 exit(1);
-	 }
-	 if (FD_ISSET(server, &temp_read))
-	 {
-		socket_cl = accept(server , 0, 0);
-		if (socket_cl > max_fd)
-			max_fd = socket_cl;
-		FD_SET(socket_cl, &temp_read);
-		FD_SET(socket_cl, &readfds);
-		FD_SET(socket_cl, &writefds);
-		FD_SET(socket_cl, &temp_write);
-		clientes.push_back(info(socket_cl));
-	}
-	
-	for (size_t i = 0; i < clientes.size(); i++)
-	{
-		if (FD_ISSET(clientes[i].socket, &temp_read))
-		{
-            char bu[1025];
-		    int b = recv(clientes[i].socket, bu, 1024, 0);
-			if (b <= 0)
-			{
-				close_socket(clientes, i, writefds , readfds);
-				continue ;
-			}
-	    	bu[b] = '\0';
-			std::string s;
-		  	s = bu;
-		 	try {
-					//check which methid is it
-					if (s.find("GET") == 0)
-					{
-		  			data["path"] = s.substr(4, s.find("HTTP") - 5);
-		  				ft_get(servers.getServersVec()[0], data["path"], clientes[i]);
-					}
-					else if (s.find("DELETE") == 0)
-					{
-						try {
-						data["path"] = s.substr(7, s.find("HTTP") - 8);								
-						ft_delete(servers.getServersVec()[0], data["path"], clientes[i]);
-						}
-						catch (std::exception &e)
-						{
-							std::cout << "error ft_delete   : " << e.what() << std::endl; 
-						}
-					
-					}
-				}
-			catch (std::exception &r){
-			// close_socket(clientes, i, readfds);
-		  	}
-
-		}
-		else if (FD_ISSET(clientes[i].socket, &temp_write))
-		{
-			bzero(bu,sizeof(bu));
-			get_response(clientes, i, writefds, readfds);
-		}
-	}
-	}
-	}
-	catch (std::exception &e)
-	{
-		std::cout << e.what() << std::endl;
-	}
-
+	// else
+	// 	close_socket(clientes, i, writefds , readfds);
 }

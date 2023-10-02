@@ -1,5 +1,82 @@
 #include "../Request/POST/ft_Post.hpp"
 
+int check_spaces(std::string &str)
+{
+	int i = 0;
+	int spaces = 0;
+	while (str[i] && str[i] != '\r')
+	{
+		if (str[i] == ' ')
+			spaces++;
+		i++;
+	
+	}
+	return (spaces);
+}
+
+int  check_which_method(std::string& headers, t_client_info *client, fd_set &writes)
+{
+	int start = headers.find(" ") + 1;
+	std::string method = headers.substr(0, headers.find(" "));
+	std::string url = headers.substr(start, headers.find(" ", start) - start);
+	std::string version = headers.substr(headers.find(" ", start) + 1, headers.find("\r\n") - headers.find(" ", start) - 1);
+	if (check_spaces(headers) != 2)
+	{
+		client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
+		client->Info->status = 1;
+		return 1;
+	}
+	if (method != "GET" && method != "POST" && method != "DELETE")
+	{
+		client->Info->buffer_to_send = "HTTP/1.1 501 Not Implemented\r\n\r\n";
+		client->Info->status = 1;
+		return 1;
+	}
+	if (version != "HTTP/1.1")
+	{
+		client->Info->buffer_to_send = "HTTP/1.1 505 HTTP Version Not Supported\r\n\r\n";
+		client->Info->status = 1;
+		return 1;
+	}
+	if (method == "GET")
+	{
+		client->method = "GET";
+		std::cout << "GET method is requested " << std::endl;
+		client->Info->socket = client->socket;
+		ft_get(*(client->data), url, *(client->Info));
+		if (!FD_ISSET(client->socket, &writes))
+			FD_SET(client->socket, &writes);
+		return 0;
+	}
+	else if (method == "POST")
+	{
+		// client->method = "POST";
+		// int ret = handle_Post(client);
+		// if ((ret == 1) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
+		// {
+		// 	if (!FD_ISSET(client->socket, &writes))
+		// 		FD_SET(client->socket, &writes);
+		// }
+		// // ft_Post(client->Info.keep, url, client->Info);
+		// return 0;
+	}
+	else if (method == "DELETE")
+	{
+		client->method = "DELETE";
+		ft_delete(*(client->data) , url, *(client->Info));
+			FD_SET(client->socket, &writes);
+		return  0;
+	}
+	else 
+	{
+		client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
+		client->Info->status = 1;
+		return 1;
+	}
+	return 1;
+
+}
+
 void	runServer(Servers &servers)
 {
 	t_client_info *clients = NULL;
@@ -40,6 +117,7 @@ void	runServer(Servers &servers)
 			{
 				t_client_info *client = get_client(-1, &clients);
 				client->socket = accept(serverSockets[i], (struct sockaddr*)&(client->address), &(client->address_length));
+				client->data = &serversVec[i];
 				if (client->socket == -1)
 					throw std::runtime_error("Error accepting connection");
 				clientSockets.push_back(client->socket);
@@ -71,12 +149,14 @@ void	runServer(Servers &servers)
 				}
 				else
                     std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
-				ret = handle_Post(clientSockets, serversVec, client);
-				if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
-				{
-					if (!FD_ISSET(client->socket, &writes))
-						FD_SET(client->socket, &writes);
-				}
+				// ret = handle_Post(clientSockets, serversVec, client);
+				// if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
+				// {
+				// 	if (!FD_ISSET(client->socket, &writes))
+				// 		FD_SET(client->socket, &writes);
+				// }
+				std::string header = client->request;
+				check_which_method(header, client, writes);
 			}
 			client = client->next;
 		}
@@ -87,8 +167,13 @@ void	runServer(Servers &servers)
 		{
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
-				response(client_write->socket);
-				drop_client(client_write, &clients);
+				if (client_write->method == "GET" || client_write->method == "DELETE")
+					get_response(*(client_write->Info));
+				else if (client_write->method == "POST")
+				{
+					response(client_write->socket);
+					drop_client(client_write, &clients);
+				}
 			}
 			client_write = client_write->next;
 		}
