@@ -44,7 +44,6 @@ void	runServer(Servers &servers)
 				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
 		}
-		int ret;
 		t_client_info *client = clients;
 		int ret = 0;
 		while(client)
@@ -80,12 +79,14 @@ void	runServer(Servers &servers)
 			client = client->next;
 		}
 
+
 		t_client_info *client_write = clients;
 		while(client_write)
 		{
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
 				response(client_write->socket);
+				drop_client(client_write, &clients);
 			}
 			client_write = client_write->next;
 		}

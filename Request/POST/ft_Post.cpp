@@ -9,13 +9,13 @@ std::string* grab_method(std::string& req)
     return ret;
 }
 
-std::string& convert_to_str(size_t len)
+std::string* convert_to_str(size_t len)
 {
     std::stringstream ss;
     ss << len;
     std::string *ret = new std::string();
     ss >> *ret;
-    return *ret;
+    return ret;
 }
 
 std::string* get_body()
@@ -31,19 +31,22 @@ std::string* get_body()
 void response(ssize_t csock_fd)
 {
     std::string *body = get_body();
+    std::string *cl = convert_to_str((*body).length());
     std::string res_total = "HTTP/1.1 200 OK\r\n" \
     "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
     "Server: 0rph1no/1.1\r\n" \
     "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\r\n" \
     "ETag: \"56d-9989200-1132c580\"\r\n" \
     "Content-Type: text/html\r\n" \
-    "Content-Length:"+convert_to_str((*body).length())+"\r\n" \
+    "Content-Length:"+*cl+"\r\n" \
     "Accept-Ranges: bytes\r\n" \
     "Connection: close\r\n" \
     "\r\n" \
     + *body;
     const char *res = res_total.c_str();
     send(csock_fd, res, strlen(res), 0);
+    delete cl;
+    delete body;
 }
 
 std::string& grab_path(std::string& req)
@@ -117,11 +120,51 @@ ssize_t get_length(std::string& req)
     }
     return -1;
 }
-void handle_content_length(std::string& req_body, int binary_data_start)
+std::string* get_filename(std::string& req)
+{
+    // std::cout << req.find("filename=")+10 << "-----" << req.find(".mp4") << std::endl;
+    int file_index = req.find("filename=");
+    std::string *temp = new std::string();
+    *temp = req.substr(file_index+10, (req.find("Content-Type:", file_index) - 12)-(file_index+1));
+    return temp;
+}
+std::string* generate_filename(std::string& ext)
+{
+    std::string *result = new std::string();
+    char alpha[26] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+                          'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                          'o', 'p', 'q', 'r', 's', 't', 'u',
+                          'v', 'w', 'x', 'y', 'z' };
+    for (int i = 0; i<26; i++)
+        *result = *result + alpha[rand() % 26];
+    *result = *result+"."+ext;
+    return result;
+}
+std::string* get_ext(std::string& req)
+{
+    std::string *ret = new std::string();
+    int ctype = req.find("Content-Type:");
+    *ret = req.substr(ctype+14, req.find("\r\n",ctype+1)-(ctype+14));
+    *ret = (*ret).substr((*ret).find("/")+1);
+    return ret;
+}
+
+void handle_content_length(t_client_info* client ,std::string& req_body, int binary_data_start)
 {
         std::ofstream img;
         const char* data;
-        img.open("image.mp4", std::ios::binary | std::ios::app);
+        if (client->times == 0)
+        {
+            if (client->req_body.find("multipart/form-data") != std::string::npos)
+                client->header.filename = get_filename(req_body);
+            else
+            {
+                std::string* ext = get_ext(req_body);
+                client->header.filename = generate_filename(*ext);
+                delete ext;
+            }
+        }
+        img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
 
             // Write the binary data to the "img.png" file
         if (img.is_open())
@@ -136,12 +179,11 @@ void handle_content_length(std::string& req_body, int binary_data_start)
         img.close();
 }
 
-void handle_chunked_encoding(const std::string& chunked_data) {
+void handle_chunked_encoding(t_client_info* client, const std::string& chunked_data) {
     std::ofstream img;
     std::string chunk_size_str;
     size_t chunk_size;
-    img.open("image.mp4", std::ios::binary | std::ios::app);
-
+    img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
     size_t pos = 0;
     while (pos < chunked_data.length()) {
         size_t chunk_size_end = chunked_data.find("\r\n", pos);
@@ -169,8 +211,10 @@ void handle_chunked_encoding(const std::string& chunked_data) {
 
 int ft_my_Post(t_client_info *client)
 {
+    size_t start_pos;
     client->all_received+=client->received;
-    client->req_body.append(client->request, sizeof(client->request));
+    if (client->request && client->received)
+        client->req_body.append(client->request, client->received);
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
         if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
             return 0;
@@ -181,17 +225,36 @@ int ft_my_Post(t_client_info *client)
         if (client->times == 0)
         {
             client->bl = get_length(client->req_body);
-            client->binary_data_start = client->req_body.find("\r\n\r\n") + 4;
+            if (client->req_body.find("multipart/form-data") != std::string::npos)
+            {
+                client->binary_data_start = client->req_body.rfind("\r\n\r\n") + 4;
+                client->is_multipart = true;
+            }
+            else
+            {
+                client->binary_data_start = client->req_body.find("\r\n\r\n") + 4;
+            }
         }
-        handle_content_length(client->req_body,client->binary_data_start);
+        handle_content_length(client, client->req_body,client->binary_data_start);
         client->req_body.clear();
     }
     if (!client->is_chunked_encoding) {
         if (client->req_body.find("Transfer-Encoding: chunked") != std::string::npos) {
             if (client->req_body.find("\r\n\r\n") + 10 > (size_t)client->received)
                 return 0;
+            if (client->req_body.find("multipart/form-data") != std::string::npos)
+            {
+                client->header.filename = get_filename(client->req_body);
+                start_pos = client->req_body.rfind("\r\n\r\n") + 4;
+            }
+            else
+            {
+                start_pos = client->req_body.find("\r\n\r\n") + 4;
+                std::string* ext = get_ext(client->req_body);
+                client->header.filename = generate_filename(*ext);
+                delete ext;
+            }
             client->is_chunked_encoding = true;
-            size_t start_pos = client->req_body.find("\r\n\r\n") + 4;
             client->req_body = client->req_body.substr(start_pos);
         }
     }
@@ -205,30 +268,37 @@ int ft_my_Post(t_client_info *client)
     if (client->is_chunked_encoding)
         return 1;
     if (client->is_content_length)
-        return 0;
-    return 0;
+        return 2;
+    return 2;
 }
 
 int handle_Post(t_client_info *client)
-int handle_Post(t_client_info *client)
 {
     int ret;
-    std::string temp;
-    temp.append(client->request, sizeof(client->request));
     if (client->times == 0)
+    {
+        std::string temp;
+        if (client->request && client->received)
+            temp.append(client->request, client->received);
 		client->header.method = grab_method(temp);
+    }
     if (*client->header.method == "POST")
     {
         ret = ft_my_Post(client);
 	    if (ret == 3)
         {
-		    handle_chunked_encoding(client->req_body);
+		    handle_chunked_encoding(client, client->req_body);
+            delete client->header.filename;
+            delete client->header.method;
             return 0;
         }
-        else if (ret == 0)
+        if (ret == 0)
+        {
+            delete client->header.filename;
+            delete client->header.method;
             return 1;
+        }
     }
-    return 2;
     return 2;
 }
 
