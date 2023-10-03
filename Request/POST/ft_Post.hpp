@@ -25,8 +25,8 @@
 
 int ft_my_Post(t_client_info *client);
 std::string* get_body();
-void response(ssize_t csock_fd);
-std::string& grab_path(std::string& req);
+void response(t_client_info* client);
+std::string* grab_path(std::string& req);
 std::string* handle_cgi();
 size_t hextodec(const char *s);
 ssize_t get_length(std::string& req);

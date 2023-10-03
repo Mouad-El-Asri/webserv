@@ -18,44 +18,68 @@ std::string* convert_to_str(size_t len)
     return ret;
 }
 
-std::string* get_body()
+std::string* get_body(std::string& err)
 {
+    std::string filename;
+    filename = "/nfs/homes/ceddibao/Desktop/webserv/default_error_pages/"+err+".html";
     std::ifstream file;
-    file.open("/nfs/homes/ceddibao/Desktop/projects/webserv/index.html");
+    file.open(filename.c_str());
     std::string *body = new std::string;
     std::string line;
     while(getline(file, line))
         body->append(line);
     return body;
 }
-void response(ssize_t csock_fd)
+
+void response(t_client_info* client)
 {
-    std::string *body = get_body();
-    std::string *cl = convert_to_str((*body).length());
-    std::string res_total = "HTTP/1.1 200 OK\r\n" \
+
+    std::string *body;
+    std::string *cl;
+    if (client->header.isError)
+    {
+        body = get_body(client->header.status);
+        cl = convert_to_str((*body).length());
+    }
+    else
+    {
+        body = new std::string("");
+        cl = new std::string("0");
+    }
+    std::string res_total = client->header.statuscode + "\r\n"\
     "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
     "Server: 0rph1no/1.1\r\n" \
     "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\r\n" \
     "ETag: \"56d-9989200-1132c580\"\r\n" \
     "Content-Type: text/html\r\n" \
-    "Content-Length:"+*cl+"\r\n" \
+    "Content-Length: "+*cl+"\r\n" \
     "Accept-Ranges: bytes\r\n" \
     "Connection: close\r\n" \
     "\r\n" \
     + *body;
     const char *res = res_total.c_str();
-    send(csock_fd, res, strlen(res), 0);
+    send(client->socket, res, strlen(res), 0);
     delete cl;
     delete body;
 }
 
-std::string& grab_path(std::string& req)
+std::string* grab_path(std::string& req)
 {  
     //GET /HAMID HTTP/1.1
     std::string *ret = new std::string();
     req = req.substr(0, req.find("\r\n"));
-    *ret = req.substr(req.find(" ")+1, (req.find("HTTP/1.1") - 5));
-    return *ret;
+    *ret = req.substr(req.find(" ")+1, (req.find("HTTP/1.1") - 6));
+    return ret;
+}
+std::string* grab_path_dir(std::string& req)
+{  
+    //GET /HAMID HTTP/1.1
+    std::string *ret = new std::string();
+    if (req == "/")
+        *ret = req;
+    else
+        *ret = req.substr(0, req.rfind("/"));
+    return ret;
 }
 
 std::string* handle_cgi()
@@ -274,6 +298,9 @@ int ft_my_Post(t_client_info *client)
 
 int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &servers, t_client_info *client)
 {
+    std::string temp = client->request;
+    client->header.file_path = grab_path(temp);
+    client->header.path_dir = grab_path_dir(*client->header.file_path);
     Directives working;
     for (size_t i = 0; i < clientSockets.size(); i++)
 	{
@@ -283,6 +310,18 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             break;
         }
 	}
+    std::vector<Locations> locations = working.getLocationsVec();
+    Locations working_location;
+    for (size_t i = 0; i < locations.size(); i++)
+	{
+        if (*client->header.path_dir == locations[i].getLocation())
+        {
+            working_location = locations[i];
+            break;
+        }
+	}
+    delete client->header.file_path;
+    delete client->header.path_dir;
     int ret;
     if (client->times == 0)
     {
@@ -290,29 +329,41 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
         if (client->request && client->received)
             temp.append(client->request, client->received);
 		client->header.method = grab_method(temp);
+        if (working_location.getAcceptedMethods()["POST"] == false)
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "405";
+            client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
+            delete client->header.method;
+            return 3;
+        }
     }
     if (*client->header.method == "POST")
     {
+
         ret = ft_my_Post(client);
 	    if (ret == 3)
         {
 		    handle_chunked_encoding(client, client->req_body);
             delete client->header.filename;
             delete client->header.method;
+            client->header.isError = false;
+            client->header.status = "200";
+            client->header.statuscode = "HTTP/1.1 200 OK";
             return 0;
         }
         if (ret == 0)
         {
+            client->header.isError = false;
+            client->header.status = "200";
+            client->header.statuscode = "HTTP/1.1 200 OK";
             delete client->header.filename;
             delete client->header.method;
             return 1;
         }
     }
     return 2;
-}
-
-Request::Request()
-{
 }
 
 Request::~Request()

@@ -15,12 +15,15 @@
 class Request
 {
 public:
+	bool		isError;
+	std::string	status;
     std::string fst_line;
     std::string *method;
-    std::string path_dir;
-    std::string file_path;
+    std::string *path_dir;
+    std::string *file_path;
 	std::string *filename;
-    Request();
+	std::string statuscode;
+    Request() : isError(false){};
     ~Request();
 };
 
@@ -42,6 +45,7 @@ typedef struct s_client_info {
 	Request					header;
 	// elhazin
 	std::string				method;
+	std::string				url;
 	Directives				*data;
 	info* 					Info;
 
