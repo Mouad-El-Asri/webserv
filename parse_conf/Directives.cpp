@@ -5,12 +5,13 @@ Directives::Directives()
 	this->serverName = "";
 	this->host = "";
 	this->listen = -1;
-	this->errorPages[400] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/400_bad_request.html";
-	this->errorPages[401] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/401_unauthorized.html";
-	this->errorPages[403] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/403_forbidden.html";
-	this->errorPages[404] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/404_not_found.html";
-	this->errorPages[500] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/500_internal_service_error.html";
-	this->errorPages[503] = "/nfs/homes/moel-asr/Desktop/webserv/default_status_code_pages/503_service_unavailable.html";
+	this->errorPages["400"] = "../default_status_code_pages/400.html";
+	this->errorPages["401"] = "../default_status_code_pages/401.html";
+	this->errorPages["403"] = "../default_status_code_pages/403.html";
+	this->errorPages["404"] = "../default_status_code_pages/404.html";
+	this->errorPages["405"] = "../default_status_code_pages/405.html";
+	this->errorPages["500"] = "../default_status_code_pages/500.html";
+	this->errorPages["503"] = "../default_status_code_pages/503.html";
 	this->maxBodySizeInBytes = -1;
 	this->index.clear();
 	this->root = "";
@@ -55,7 +56,7 @@ int	Directives::getListen() const
 	return (this->listen);
 }
 
-std::map<int, std::string>	Directives::getErrorPages() const
+std::map<std::string, std::string>	Directives::getErrorPages() const
 {
 	return (this->errorPages);
 }
@@ -100,7 +101,7 @@ void	Directives::setListen(const int& port)
     this->listen = port;
 }
 
-void	Directives::setErrorPage(const int& errorCode, const std::string& page)
+void	Directives::setErrorPage(const std::string& errorCode, const std::string& page)
 {
     this->errorPages[errorCode] = page;
 }

@@ -142,7 +142,7 @@ void	checkErrorPages(Directives &directives, std::istringstream &iss)
 		throw std::runtime_error("The error_page file doesn't exist.");
 	else if (access(result[1].c_str(), R_OK) != 0)
 		throw std::runtime_error("The error_page file is not readable.");
-	directives.setErrorPage(atoi(result[0].c_str()), result[1]);
+	directives.setErrorPage(result[0], result[1]);
 }
 
 void	checkAutoIndex(Directives &directives, std::istringstream &iss)
