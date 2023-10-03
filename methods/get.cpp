@@ -26,12 +26,49 @@
 // 	}
 // }
 
+// int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion)
+// {
+// 	int count = 0, i = 0, a = 0;	
+// 	if (path.find(".php") != std::string::npos)
+// 	{
+// 		if (path.find(".php") + 4 == path.find("?"))
+// 		{
+// 			extansion = ".php";
+// 			path = path.substr(0, path.find("?"));
+// 			return 1;
+// 		}
+// 		else if (path.find_last_of(".php") +4  == std::string::npos)
+// 		{
+// 			extansion = ".php";
+// 			path = path.substr(0, path.find_last_of(".php") + 4);
+// 			return 1;
+// 		}
+// 	}
+// 	else if (path.find(".py") != std::string::npos)
+// 	{
+// 		if (path.find(".py") + 3 == path.find("?"))
+// 		{
+// 			extansion = ".py";
+// 			path = path.substr(0, path.find("?"));
+// 			return 1;
+// 		}
+// 		else if (path.find_last_of(".py") + 3  == std::string::npos)
+// 		{
+// 			extansion = ".py";
+// 			path = path.substr(0, path.find_last_of(".py") + 3);
+// 			return 1;
+// 		}
+// 	}
+// 	return 0;
+// }
 
 void method_get::check_location()
 {
 	int forbidden = 0;
+	std::string let;
 	size_t i = 0;
 	int max_lenght = 0;
+	// int checked_cgi = 0;
 	int size = 0;
 	int is_checked = 0;
 	while (i < keep.getLocationsVec().size())
@@ -45,7 +82,22 @@ void method_get::check_location()
 				this->auto_index = keep.getLocationsVec()[i].getAutoIndex();
 				this->index = keep.getLocationsVec()[i].getIndex();
 				this->route = keep.getLocationsVec()[i].getRoot();
-				path = route + url.substr(size, url.size());
+				// path = route + url.substr(size, url.size());
+				// if (!keep.getLocationsVec()[i].getCgi().empty())
+				// {
+				// 	std::string ext;
+				// 	if (check_is_cgi(path, let, ext)== 1)
+				// 	{
+				// 		if (keep.getLocationsVec()[i].getCgi()[ext] == ".php" || keep.getLocationsVec()[i].getCgi()[ext] == ".py")
+				// 		{
+				// 			checked_cgi = 1;
+				// 		}
+				// 		else 
+				// 			checked_cgi = 0;
+				// 	}
+				// }
+				// else 
+				// 	checked_cgi = 0;
 				// if (keep.getLocationsVec()[i].getReturn() != "")
 				// {
 				// 	this->infa.buffer_to_send = "HTTP/1.1 " + keep.getLocationsVec()[i].getReturn() + "\nContent-Type: text/html\nContent-Length: 0\n\n";
@@ -60,11 +112,14 @@ void method_get::check_location()
 		}
 		i++;
 	}
+
 	if (forbidden == 1)
 	{
 		set_error_403();
 		throw std::exception();
 	}
+	// if (checked_cgi == 1)
+	// 	execute_cgi(let);
 	if (is_checked == 0)
 	{
 		set_error_404();

@@ -27,7 +27,7 @@ t_client_info	*get_client(int s, t_client_info **clients)
 
 void	drop_client(t_client_info *client, t_client_info **clients)
 {
-	close(client->socket);
+	// close(client->socket);
 	t_client_info **p = clients;
 	while(*p)
 	{
