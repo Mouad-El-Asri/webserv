@@ -97,7 +97,7 @@ class method_get
 		std::string url;
 		info &infa;
 		Directives& keep;
-		std::map<int , std::string> erros_page;
+		std::map<std::string , std::string> erros_page;
 		std::string location;
 	method_get(Directives& k, std::string l, info &inf);
 	void get_check_path();

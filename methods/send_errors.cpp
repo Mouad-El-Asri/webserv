@@ -18,7 +18,7 @@ void	method_get::set_error_403()
 {
 	struct stat st;
 
-	this ->path  = erros_page[403];
+	this ->path  = erros_page["403"];
 	this->file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!file->is_open())
 	{
@@ -44,7 +44,7 @@ void	method_get::set_error_403()
 void	method_get::set_error_404()
 {
 	struct stat st;
-	this ->path  = erros_page[404];
+	this ->path  = erros_page[""];
 	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!file->is_open())
 	{
