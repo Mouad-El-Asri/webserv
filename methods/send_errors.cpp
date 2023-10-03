@@ -45,7 +45,7 @@ void	method_get::set_error_404()
 {
 	struct stat st;
 	this ->path  = erros_page[404];
-	this->file = new std::ifstream(path.c_str(),  std::ios::binary);
+	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!file->is_open())
 	{
 		std::cout << "error 500" << std::endl;
@@ -64,5 +64,5 @@ void	method_get::set_error_404()
 	ext += "\r\n";
 	this->infa.buffer_to_send = ext;
 	this->infa.status = 1;
-	infa.file = file;
+
 }

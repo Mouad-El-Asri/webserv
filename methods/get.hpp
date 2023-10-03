@@ -69,8 +69,7 @@ class info{
 	}
 	~info()
 	{
-		if (file)
-			delete file;
+		delete file;
 	}
 	int was_read;
 	int socket;
@@ -124,6 +123,6 @@ class ft_delete : public method_get
     void remove_folder(std::string path);
 };
 void ft_get(Directives &data, std::string url,  info &socket);
-void get_response(info &clientes);
+
 
 #endif

@@ -1,4 +1,5 @@
 #include "get.hpp"
+#include "../Multiplexing/multiplexing.hpp"
 #define P 8081
  
 
@@ -75,17 +76,16 @@ void method_get::get_check_path()
 {
 	struct stat st;
 	try {
+		std::cout << "path: " << path << std::endl;
 	check_location();
 	}
 	catch (std::exception &e)
 	{
 		return ;
 	}
-	std::cout << "path: " << path << std::endl;
 	if (stat(path.c_str() , &st) == 0)
 	{
 		try{
-		
 			this->size = st.st_size;
 			infa.size = st.st_size;
 			if (S_ISDIR(st.st_mode))
@@ -152,40 +152,49 @@ void close_socket(std::vector<info> &clientes, size_t& i , fd_set &writefds, fd_
 	clientes.erase(clientes.begin() + i);
 }
 
-void get_response(info &clientes)
+void get_response(info &clientes, t_client_info *client_write , t_client_info **clients)
 {
-	std::cout << "iam here " << std::endl;
 	char bu[1025];
 	if (clientes.status == 1)
 	{
-		send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0);
-		std::cout << "|||"<< clientes.buffer_to_send << "|| "<< std::endl;
-		// if (send( <= 0)
-		// {
-		// 	std::cout  <<"FAILED TO SEND" << std::endl;
-		// 	close_socket(clientes, i, writefds , readfds);
-		// 	return ;
-		// }
-			clientes.status = 0;
+		if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) <= 0)
+		{
+			std::cout << "FAILED TO SEND THE HEADERS" << std::endl;
+			if (clientes.file)
+				clientes.file->close();
+			if (clientes.file)	
+				delete clientes.file;
+			delete client_write->Info;
+			drop_client(client_write, clients);
+			return ;
+		}
+		clientes.status = 0;
 	}
 	if (clientes.file &&  !clientes.file->eof())
 	{
 		clientes.file->read(bu, 1024);
 		int count = clientes.file->gcount();
-		if (count <= 0)
+		if (send(clientes.socket, bu, count, 0) <= 0)
 		{
-			std::cout << "error in reading file" << std::endl;
-			// close_socket(clientes, i, writefds , readfds);
-			return ;
-		}
-		if (send(clientes.socket, bu, count, 0) < 0)
-		{
-			std::cout << clientes.socket << std::endl;
-			std::cout <<"FAILED TO SEND" << std::endl;
-			// close_socket(clientes, i, writefds , readfds);
+			std::cout << "FAILED TO SEND THE File" << std::endl;
+			if (clientes.file)
+				clientes.file->close();
+			if (clientes.file)	
+				delete clientes.file;
+			delete client_write->Info;
+			drop_client(client_write, clients);
 			return ;
 		}		
 	}
-	// else
-	// 	close_socket(clientes, i, writefds , readfds);
+	else
+	{
+		std::cout << "ending conection " << std::endl;
+		if (clientes.file)
+			clientes.file->close();
+		if (clientes.file)	
+			delete clientes.file;
+		delete client_write->Info;
+		drop_client(client_write, clients);
+		return ;
+	}
 }

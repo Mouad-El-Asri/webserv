@@ -136,6 +136,7 @@ void	runServer(Servers &servers)
 
 			if (FD_ISSET(client->socket, &tempReads))
 			{
+				std::cout << "Reading from client " << get_client_address(client) << "." << std::endl;
 				client->received = recv(client->socket, client->request, 1024, 0);
 				if (client->received == -1)
 				{
@@ -168,7 +169,7 @@ void	runServer(Servers &servers)
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
 				if (client_write->method == "GET" || client_write->method == "DELETE")
-					get_response(*(client_write->Info));
+					get_response(*(client_write->Info), client_write, &clients);
 				else if (client_write->method == "POST")
 				{
 					response(client_write->socket);
