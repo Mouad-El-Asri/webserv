@@ -2,6 +2,7 @@
 
 void method_get::set_error_500()
 {
+	std::cout << "error 500" << std::endl;
 	std::ofstream file("./error500.html");
 	file << "<html><body><h1>500 Internal Server Error</h1></body></html>";
 	file.close();
@@ -16,14 +17,18 @@ void method_get::set_error_500()
 
 void	method_get::set_error_403()
 {
+	std::cout << "error 403" << std::endl;	
 	struct stat st;
 
 	this ->path  = erros_page["403"];
 	this->file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!file->is_open())
 	{
-		this->set_error_500();
-		return	;
+		std::cout << "error 500" << std::endl;
+		infa.buffer_to_send = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n <html><body><h1>403 Forbidden</h1></body></html>";
+		infa.status = 1;
+		infa.file = NULL;
+		return;
 	}
 	stat(path.c_str() , &st);
 
@@ -43,20 +48,22 @@ void	method_get::set_error_403()
 
 void	method_get::set_error_404()
 {
+	std::cout << "error 404" << std::endl;
 	struct stat st;
 	this ->path  = erros_page["404"];
 	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
-	if (!file->is_open())
+	if (!infa.file->is_open())
 	{
-		std::cout << "error 500" << std::endl;
-		this->set_error_500();
-		return	;
+		infa.buffer_to_send = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 2 0\r\n\r\n <html><body><h1>404 Not Found</h1></body></html>";
+		infa.status = 1;
+		infa.file = NULL;
+		return;
 	}
 	stat(path.c_str() , &st);
-	this->size = st.st_size;
-	infa.size = st.st_size;
-	std::stringstream ss ;
-	std::string ext;
+	this->size = 		st.st_size;
+	infa.size = 		st.st_size;
+	std::stringstream	ss;
+	std::string			ext;
 	ext = extansion_handling["404"];
 	ss << this->size;
 	ext += ss.str();

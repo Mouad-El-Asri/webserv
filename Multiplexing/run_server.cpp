@@ -158,7 +158,8 @@ void	runServer(Servers &servers)
 		}
 
 		t_client_info *client_write = clients;
-		while(client_write)
+		t_client_info *temp = clients;
+		while(temp)
 		{
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
@@ -170,7 +171,8 @@ void	runServer(Servers &servers)
 				else
 					get_response(*(client_write->Info), client_write, &clients);
 			}
-			client_write = client_write->next;
+			client_write = temp->next;
+			temp = temp->next;
 		}
 	}
 	std::cout << "Closing sockets..." << std::endl;

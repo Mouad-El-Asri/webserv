@@ -2,6 +2,7 @@
 
 void method_get::file_handling()
 {
+	std::cout << "path : " << this->path << std::endl;
 	infa.file = new std::ifstream(path.c_str(), std::ios::binary);
 	std::stringstream ss ;
 	std::string ext;
