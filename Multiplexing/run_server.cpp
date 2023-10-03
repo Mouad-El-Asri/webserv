@@ -160,17 +160,15 @@ void	runServer(Servers &servers)
 		t_client_info *client_write = clients;
 		while(client_write)
 		{
-			std::cout << client_write->method << std::endl;
-			// exit(3);
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
-				if (client_write->method == "GET" || client_write->method == "DELETE")
-					get_response(*(client_write->Info), client_write, &clients);
-				else if (client_write->method == "POST")
+				if (client_write->method == "POST")
 				{
 					response(client_write);
 					drop_client(client_write, &clients);
 				}
+				else
+					get_response(*(client_write->Info), client_write, &clients);
 			}
 			client_write = client_write->next;
 		}

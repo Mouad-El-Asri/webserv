@@ -82,7 +82,9 @@ void method_get::check_location()
 				this->auto_index = keep.getLocationsVec()[i].getAutoIndex();
 				this->index = keep.getLocationsVec()[i].getIndex();
 				this->route = keep.getLocationsVec()[i].getRoot();
-				// path = route + url.substr(size, url.size());
+				if (route[route.size() - 1] != '/')
+					route += "/";
+				path = route + url.substr(size, url.size());
 				// if (!keep.getLocationsVec()[i].getCgi().empty())
 				// {
 				// 	std::string ext;
@@ -217,38 +219,29 @@ void get_response(info &clientes, t_client_info *client_write , t_client_info **
 			std::cout << "FAILED TO SEND THE HEADERS" << std::endl;
 			if (clientes.file)
 				clientes.file->close();
-			if (clientes.file)	
-				delete clientes.file;
-			delete client_write->Info;
 			drop_client(client_write, clients);
 			return ;
 		}
 		clientes.status = 0;
 	}
-	if (clientes.file &&  !clientes.file->eof())
+	if (clientes.file && clientes.file->eof() == false)
 	{
 		clientes.file->read(bu, 1024);
-		int count = clientes.file->gcount();
-		if (send(clientes.socket, bu, count, 0) <= 0)
+		int	count = clientes.file->gcount();
+		if	(send(clientes.socket, bu, count, 0) <= 0)
 		{
 			std::cout << "FAILED TO SEND THE File" << std::endl;
 			if (clientes.file)
 				clientes.file->close();
-			if (clientes.file)	
-				delete clientes.file;
-			delete client_write->Info;
 			drop_client(client_write, clients);
 			return ;
-		}		
+		}
 	}
 	else
 	{
 		std::cout << "ending conection " << std::endl;
 		if (clientes.file)
 			clientes.file->close();
-		if (clientes.file)	
-			delete clientes.file;
-		delete client_write->Info;
 		drop_client(client_write, clients);
 		return ;
 	}
