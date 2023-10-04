@@ -73,12 +73,22 @@ std::string* grab_path(std::string& req)
 }
 std::string* grab_path_dir(std::string& req)
 {  
-    //GET /HAMID HTTP/1.1
+    std::cout << req << std::endl;
     std::string *ret = new std::string();
     if (req == "/")
         *ret = req;
     else
-        *ret = req.substr(0, req.rfind("/"));
+    {
+        size_t found = req.rfind("/");
+        if (found != std::string::npos && found != 0)
+        {
+            *ret = req.substr(0, req.rfind("/"));
+        }
+        else
+        {
+            *ret = req;
+        }
+    }
     return ret;
 }
 
