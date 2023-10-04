@@ -138,7 +138,7 @@ ssize_t get_length(std::string& req)
         if (line.find("Content-Length") != std::string::npos)
         {
             size_t sep = line.find(":") + 2;
-            printf("{%ld}\n", sep);
+            // printf("{%ld}\n", sep);
             return atoi((line.substr(sep,line.length())).c_str());
         }
     }
@@ -190,7 +190,6 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
         }
         img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
 
-            // Write the binary data to the "img.png" file
         if (img.is_open())
         {
             data = req_body.c_str() + binary_data_start;
@@ -295,6 +294,28 @@ int ft_my_Post(t_client_info *client)
         return 2;
     return 2;
 }
+bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
+{
+    if (loc.getAcceptedMethods()["POST"] == false)
+    {
+        client->times++;
+        client->header.isError = true;
+        client->header.status = "405";
+        client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
+        return true;
+    }
+    std::string temp = client->request;
+    int bl = get_length(temp);
+    if (bl > working.getMaxBodySizeInBytes())
+    {
+        client->times++;
+        client->header.isError = true;
+        client->header.status = "413";
+        client->header.statuscode = "HTTP/1.1 413 Entity Too Big";
+        return true;
+    }
+    return false;
+}
 
 int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &servers, t_client_info *client)
 {
@@ -323,31 +344,16 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
     delete client->header.file_path;
     delete client->header.path_dir;
     int ret;
-    if (client->times == 0)
-    {
-        std::string temp;
-        if (client->request && client->received)
-            temp.append(client->request, client->received);
-		client->header.method = grab_method(temp);
-        if (working_location.getAcceptedMethods()["POST"] == false)
+        if (client->times == 0)
         {
-            client->times++;
-            client->header.isError = true;
-            client->header.status = "405";
-            client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
-            delete client->header.method;
-            return 3;
+            if (is_Req_Err(working_location, client, working))
+                return 3;
         }
-    }
-    if (*client->header.method == "POST")
-    {
-
         ret = ft_my_Post(client);
 	    if (ret == 3)
         {
 		    handle_chunked_encoding(client, client->req_body);
             delete client->header.filename;
-            delete client->header.method;
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
@@ -359,10 +365,8 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
             delete client->header.filename;
-            delete client->header.method;
             return 1;
         }
-    }
     return 2;
 }
 

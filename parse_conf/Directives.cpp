@@ -10,6 +10,7 @@ Directives::Directives()
 	this->errorPages["403"] = "default_error_pages/403.html";
 	this->errorPages["404"] = "default_error_pages/404.html";
 	this->errorPages["405"] = "default_error_pages/405.html";
+	this->errorPages["413"] = "default_error_pages/413.html";
 	this->errorPages["500"] = "default_error_pages/500.html";
 	this->errorPages["503"] = "default_error_pages/503.html";
 	this->maxBodySizeInBytes = -1;
