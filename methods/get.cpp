@@ -209,17 +209,18 @@ void close_socket(std::vector<info> &clientes, size_t& i , fd_set &writefds, fd_
 	clientes.erase(clientes.begin() + i);
 }
 
-void get_response(info &clientes, t_client_info *client_write , t_client_info **clients)
+void	get_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
 	char bu[1025];
 	if (clientes.status == 1)
 	{
-		if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) <= 0)
+		if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) < 0)
 		{
+			perror("send_headers");
 			std::cout << "FAILED TO SEND THE HEADERS" << std::endl;
 			if (clientes.file)
 				clientes.file->close();
-			drop_client(client_write, clients);
+			drop_client(client_write, clients, reads, writes);
 			return ;
 		}
 		clientes.status = 0;
@@ -233,7 +234,7 @@ void get_response(info &clientes, t_client_info *client_write , t_client_info **
 			std::cout << "FAILED TO SEND THE File" << std::endl;
 			if (clientes.file)
 				clientes.file->close();
-			drop_client(client_write, clients);
+			drop_client(client_write, clients, reads, writes);
 			return ;
 		}
 	}
@@ -242,7 +243,7 @@ void get_response(info &clientes, t_client_info *client_write , t_client_info **
 		std::cout << "ending conection " << std::endl;
 		if (clientes.file)
 			clientes.file->close();
-		drop_client(client_write, clients);
+		drop_client(client_write, clients, reads, writes);
 		return ;
 	}
 }

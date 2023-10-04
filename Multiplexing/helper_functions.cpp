@@ -25,7 +25,7 @@ t_client_info	*get_client(int s, t_client_info **clients)
 	return (newClient);
 }
 
-void	drop_client(t_client_info *client, t_client_info **clients)
+void	drop_client(t_client_info *client, t_client_info **clients, fd_set &reads, fd_set &writes)
 {
 	t_client_info **p = clients;
 	while(*p)
@@ -33,6 +33,10 @@ void	drop_client(t_client_info *client, t_client_info **clients)
 		if (*p == client)
 		{
 			*p = client->next;
+			if (FD_ISSET(client->socket, &reads))
+				FD_CLR(client->socket, &reads);
+			if (FD_ISSET(client->socket, &writes))
+				FD_CLR(client->socket, &writes);
 			close(client->socket);
 			delete client;
 			return ;

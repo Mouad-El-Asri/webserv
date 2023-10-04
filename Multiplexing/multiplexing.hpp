@@ -67,8 +67,8 @@ int				createListeningSocket(std::string &host, int &port);
 void			runServer(Servers &servers);
 void			lstadd_front(t_client_info **lst, t_client_info *newLst);
 t_client_info	*get_client(int s, t_client_info **clients);
-void			drop_client(t_client_info *client, t_client_info **clients);
+void			drop_client(t_client_info *client, t_client_info **clients, fd_set &reads, fd_set &writes);
 void			wait_on_clients(int &maxSocket, t_client_info **clients, fd_set &reads, fd_set &writes, fd_set &tempReads, fd_set &tempWrites);
 std::string		get_client_address(t_client_info *client);
-void get_response(info &clientes, t_client_info *client, t_client_info **clients);
+void			get_response(info &clientes, t_client_info *client, t_client_info **clients, fd_set &reads, fd_set &writes);
 #endif
