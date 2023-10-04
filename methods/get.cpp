@@ -143,6 +143,11 @@ void method_get::get_check_path()
 	if (stat(path.c_str() , &st) == 0)
 	{
 		try{
+	    if (access(path.c_str(), W_OK | X_OK) == -1)
+        {
+            set_error_403();
+            throw std::exception();
+        }
 			this->size = st.st_size;
 			infa.size = st.st_size;
 			if (S_ISDIR(st.st_mode))

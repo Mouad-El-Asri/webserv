@@ -37,16 +37,16 @@ void ft_delete::remove_them(std::string path)
             continue;
         if (S_ISDIR(st.st_mode))
         {
+            if (access(full_path.c_str(), F_OK) == -1)
+                continue;
             remove_them(full_path);
-            remove_folder(full_path);
+            std::remove(full_path.c_str());
         }
         else
             remove_file(full_path);
     }
     closedir(dir);
-    remove_folder(path);
-
-
+    std::remove(path.c_str());
 }
 
 void ft_delete::remove_folder(std::string path)
@@ -63,13 +63,18 @@ void ft_delete::remove_folder(std::string path)
 
 void ft_delete::remove_file(std::string path)
 {
-    if (fork() == 0)
-    {   
-        const  char *argv[] = {"rm", "-f", path.c_str(), NULL};
-        execve("/bin/rm",  const_cast<char *const *>(argv), NULL);
-        return ;
+    if (std::remove(path.c_str()) ==0)
+    {
+        this->infa.buffer_to_send = "HTTP/1.1 204 No Content\r\n\r\n";
+        this->infa.status = 1;
+        size = 0;
+        throw std::exception();
     }
-    wait(NULL);
+    else if (errno == EACCES)
+    {
+        set_error_403();
+       throw std::exception();
+    }
 }
 
 void ft_delete::check_stat()
@@ -77,15 +82,21 @@ void ft_delete::check_stat()
 	struct stat st;
 	if (stat(path.c_str() , &st) == 0)
 	{
+        if (access(path.c_str(), W_OK | X_OK) == -1)
+        {
+            set_error_403();
+            throw std::exception();
+        }
         if (S_ISDIR(st.st_mode))
-	        remove_them(path);
-	    else
-		    remove_file(path);
-	}
+        {
+            remove_them(path);
+        }
+        else
+            remove_file(path);
+    }
 	else
     {
         set_error_404();
-        std::cout << "path:444444444444444444 " << path << std::endl;
         throw std::exception();
     }
 }

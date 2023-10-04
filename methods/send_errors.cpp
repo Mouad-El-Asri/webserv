@@ -24,14 +24,12 @@ void	method_get::set_error_403()
 	this->file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!file->is_open())
 	{
-		std::cout << "error 500" << std::endl;
 		infa.buffer_to_send = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n <html><body><h1>403 Forbidden</h1></body></html>";
 		infa.status = 1;
 		infa.file = NULL;
 		return;
 	}
 	stat(path.c_str() , &st);
-
 	this->size = st.st_size;
 	infa.size = st.st_size;
 	std::stringstream ss ;
