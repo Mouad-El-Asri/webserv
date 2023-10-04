@@ -6,19 +6,18 @@ ft_delete::ft_delete(Directives& k, std::string l, info &inf) : method_get(k, l,
     this->url = l;
     this->infa = inf;
     try 
- {
-    this->location_check();
-    this->check_stat();
-    infa.buffer_to_send = extansion_handling["html"];
-    infa.buffer_to_send = "HTTP/1.1 204 No Content\r\n\r\n";
-    infa.status = 1;
-
-}
-catch (std::exception &e)
-{
-    infa.status = 1;
-    return ;
-}
+    {
+         this->location_check();
+         this->check_stat();
+         infa.buffer_to_send = extansion_handling["html"];
+         infa.buffer_to_send = "HTTP/1.1 204 No Content\r\n\r\n";
+         infa.status = 1;
+    }
+    catch (std::exception &e)
+    {
+        infa.status = 1;
+        return ;
+    }
 }
 
 void ft_delete::remove_them(std::string path)

@@ -212,12 +212,12 @@ void close_socket(std::vector<info> &clientes, size_t& i , fd_set &writefds, fd_
 void	get_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
 	char bu[1025];
+	static int	count = 0;
 	if (clientes.status == 1)
 	{
+		std::cout << "--------------> " << clientes.buffer_to_send <<  std::endl;
 		if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) < 0)
 		{
-			perror("send_headers");
-			std::cout << "FAILED TO SEND THE HEADERS" << std::endl;
 			if (clientes.file)
 				clientes.file->close();
 			drop_client(client_write, clients, reads, writes);
@@ -228,8 +228,10 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 	if (clientes.file && clientes.file->eof() == false)
 	{
 		clientes.file->read(bu, 1024);
-		int	count = clientes.file->gcount();
-		if	(send(clientes.socket, bu, count, 0) <= 0)
+		int reading = clientes.file->gcount();
+		int sending   = send(clientes.socket, bu, reading, 0) ;
+		count += sending;
+		if	(sending < 0)
 		{
 			std::cout << "FAILED TO SEND THE File" << std::endl;
 			if (clientes.file)
@@ -237,12 +239,18 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 			drop_client(client_write, clients, reads, writes);
 			return ;
 		}
+		if(sending == 0)
+		{
+			std::cout << "hunging conection---------------------------------- " << std::endl;
+		}
 	}
 	else
 	{
 		std::cout << "ending conection " << std::endl;
 		if (clientes.file)
 			clientes.file->close();
+		std::cout << "the original size : " << clientes.size  << "      sended size     " << count << std::endl;
+		count = 0;
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}

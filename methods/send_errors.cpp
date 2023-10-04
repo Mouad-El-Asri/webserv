@@ -54,9 +54,8 @@ void	method_get::set_error_404()
 	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!infa.file->is_open())
 	{
-		infa.buffer_to_send = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 20\r\n\r\n <html><body><h1>404 Not Found</h1></body></html>";
-		infa.status = 1;
-		infa.file = NULL;
+	std::cout << "this ->path  = erros_page[404];" <<  this->path <<  std::endl;
+		this->set_error_500();
 		return;
 	}
 	stat(path.c_str() , &st);

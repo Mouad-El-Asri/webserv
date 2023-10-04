@@ -71,6 +71,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	else if (client->method == "DELETE")
 	{
 		client->method = "DELETE";
+		client->Info->socket = client->socket;
 		ft_delete(*(client->data) , client->url, *(client->Info));
 			FD_SET(client->socket, &writes);
 		return  0;
@@ -135,6 +136,7 @@ void	runServer(Servers &servers)
 		t_client_info *client = clients;
 		while(client)
 		{
+			t_client_info *next = client->next;
 			if (FD_ISSET(client->socket, &tempReads))
 			{
 				std::cout << "Reading from client " << get_client_address(client) << "." << std::endl;
@@ -150,11 +152,13 @@ void	runServer(Servers &servers)
 					drop_client(client, &clients, reads, writes);
 				}
 				else
+				{
                     std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
-				std::string header = client->request;
-				check_which_method(header, client, writes, clientSockets, serversVec);
+					std::string header = client->request;
+					check_which_method(header, client, writes, clientSockets, serversVec);
+				}
 			}
-			client = client->next;
+			client = next;
 		}
 
 		t_client_info *client_write = clients;

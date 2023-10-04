@@ -6,6 +6,7 @@ void method_get::send_indexing(DIR *dir)
 {
 	struct dirent *dp;
     std::ofstream  fill("./indexing.html");
+	struct stat st;
     if (!fill.is_open())
     {
         std::cout << "error in opening file" << std::endl;
@@ -18,6 +19,8 @@ void method_get::send_indexing(DIR *dir)
 	closedir(dir);
 	fill.close();
 	this->path = "./indexing.html";
+	stat(path.c_str() , &st);
+	this->size = st.st_size;
 	file_handling();
 }
 
