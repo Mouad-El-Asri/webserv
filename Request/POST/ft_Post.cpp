@@ -235,7 +235,6 @@ void handle_chunked_encoding(t_client_info* client, const std::string& chunked_d
 int ft_my_Post(t_client_info *client)
 {
     size_t start_pos;
-    client->all_received+=client->received;
     if (client->request && client->received)
         client->req_body.append(client->request, client->received);
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
@@ -294,25 +293,45 @@ int ft_my_Post(t_client_info *client)
         return 2;
     return 2;
 }
+
 bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
 {
-    if (loc.getAcceptedMethods()["POST"] == false)
+    if (client->times == 0)
     {
-        client->times++;
-        client->header.isError = true;
-        client->header.status = "405";
-        client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
-        return true;
+        if (loc.getAcceptedMethods()["POST"] == false)
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "405";
+            client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
+            return true;
+        }
     }
     std::string temp = client->request;
-    int bl = get_length(temp);
-    if (bl > working.getMaxBodySizeInBytes())
+    if (temp.find("Content-Length") != std::string::npos && client->times == 0)
     {
-        client->times++;
-        client->header.isError = true;
-        client->header.status = "413";
-        client->header.statuscode = "HTTP/1.1 413 Entity Too Big";
-        return true;
+        int length = get_length(temp);
+        std::cout << length << std::endl;
+        if (length > working.getMaxBodySizeInBytes())
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "413";
+            client->header.statuscode = "HTTP/1.1 419 Entity Too Big";
+            return true;
+        }
+    }
+    else
+    {
+        if (client->all_received > (size_t)working.getMaxBodySizeInBytes())
+        {
+            std::cout << "hmid" << std::endl;
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "413";
+            client->header.statuscode = "HTTP/1.1 413 Entity Too Big";
+            return true;
+        }
     }
     return false;
 }
@@ -343,12 +362,11 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
 	}
     delete client->header.file_path;
     delete client->header.path_dir;
+    // std::cout << "entred" << std::endl;
+    // exit(1);
     int ret;
-        if (client->times == 0)
-        {
-            if (is_Req_Err(working_location, client, working))
-                return 3;
-        }
+        if (is_Req_Err(working_location, client, working))
+            return 3;
         ret = ft_my_Post(client);
 	    if (ret == 3)
         {

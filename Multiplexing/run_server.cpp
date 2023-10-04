@@ -58,8 +58,11 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		ret = handle_Post(clientSockets, serversVec, client);
 		if (ret == 3)
 		{
+			std::cout << "it gave 3" << std::endl;
 			if (!FD_ISSET(client->socket, &writes))
+			{
 				FD_SET(client->socket, &writes);
+			}
 		}
 		else if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
 		{
@@ -136,11 +139,14 @@ void	runServer(Servers &servers)
 		t_client_info *client = clients;
 		while(client)
 		{
+			std::cout << "2 time nigga " << std::endl;
 			t_client_info *next = client->next;
 			if (FD_ISSET(client->socket, &tempReads))
 			{
+				std::cout << client->socket << std::endl;
 				std::cout << "Reading from client " << get_client_address(client) << "." << std::endl;
 				client->received = recv(client->socket, client->request, 1024, 0);
+				client->all_received+=client->received;
 				if (client->received == -1)
 				{
 					std::cerr << "Error reading from client " << get_client_address(client) << "." << std::endl;
@@ -167,13 +173,17 @@ void	runServer(Servers &servers)
 			t_client_info *next = client_write->next;
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
+				std::cout << "in responce" << std::endl;
 				if (client_write->method == "POST")
 				{
+					std::cout << "---------------" << client_write->socket << std::endl;
 					response(client_write);
 					drop_client(client_write, &clients, reads, writes);
 				}
 				else
+				{
 					get_response(*(client_write->Info), client_write, &clients, reads, writes);
+				}
 			}
 			client_write = next;
 		}
