@@ -24,8 +24,8 @@
 #include "../../Multiplexing/multiplexing.hpp"
 
 int ft_my_Post(t_client_info *client);
-std::string* get_body();
-void response(t_client_info* client);
+std::string* get_body(t_client_info *client, Directives &working);
+void response(t_client_info* client, std::vector<int> clientSockets, std::vector<Directives> &servers);
 std::string* grab_path(std::string& req);
 std::string* handle_cgi();
 size_t hextodec(const char *s);

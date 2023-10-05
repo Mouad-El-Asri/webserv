@@ -56,6 +56,8 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	{
 		client->method = "POST";
 		ret = handle_Post(clientSockets, serversVec, client);
+		// std::cout << "ret ----- " << ret << std::endl;
+		// exit(1);
 		if (ret == 3)
 		{
 			std::cout << "it gave 3" << std::endl;
@@ -69,6 +71,8 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 			if (!FD_ISSET(client->socket, &writes))
 				FD_SET(client->socket, &writes);
 		}
+		delete client->header.file_path;
+    	delete client->header.path_dir;
 		return 0;
 	}
 	else if (client->method == "DELETE")
@@ -122,7 +126,6 @@ void	runServer(Servers &servers)
 
 	while (true)
 	{
-		wait_on_clients(maxSocket, &clients, reads, writes, tempReads, tempWrites);
 		for (size_t i = 0; i < serverSockets.size(); i++)
 		{
 			if (FD_ISSET(serverSockets[i], &tempReads))
@@ -136,6 +139,7 @@ void	runServer(Servers &servers)
 				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
 		}
+		wait_on_clients(maxSocket, &clients, reads, writes, tempReads, tempWrites);
 		t_client_info *client = clients;
 		while(client)
 		{
@@ -161,7 +165,7 @@ void	runServer(Servers &servers)
 				{
                     std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
 					std::string header = client->request;
-					check_which_method(header, client, writes, clientSockets, serversVec);
+					check_which_method(header, client, tempWrites, clientSockets, serversVec);
 				}
 			}
 			client = next;
@@ -177,7 +181,7 @@ void	runServer(Servers &servers)
 				if (client_write->method == "POST")
 				{
 					std::cout << "---------------" << client_write->socket << std::endl;
-					response(client_write);
+					response(client_write, clientSockets, serversVec);
 					drop_client(client_write, &clients, reads, writes);
 				}
 				else

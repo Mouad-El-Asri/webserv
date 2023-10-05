@@ -18,10 +18,10 @@ std::string* convert_to_str(size_t len)
     return ret;
 }
 
-std::string* get_body(std::string& err)
+std::string* get_body(t_client_info *client, Directives &working)
 {
     std::string filename;
-    filename = "/nfs/homes/ceddibao/Desktop/webserv/default_error_pages/"+err+".html";
+    filename = working.getErrorPages()[client->header.status];
     std::ifstream file;
     file.open(filename.c_str());
     std::string *body = new std::string;
@@ -31,14 +31,23 @@ std::string* get_body(std::string& err)
     return body;
 }
 
-void response(t_client_info* client)
+void response(t_client_info* client, std::vector<int> clientSockets, std::vector<Directives> &servers)
 {
-
+    Directives working;
+    for (size_t i = 0; i < clientSockets.size(); i++)
+	{
+        if (clientSockets[i] == client->socket)
+        {
+            working = servers[i];
+            break;
+        }
+	}
+    
     std::string *body;
     std::string *cl;
     if (client->header.isError)
     {
-        body = get_body(client->header.status);
+        body = get_body(client, working);
         cl = convert_to_str((*body).length());
     }
     else
@@ -73,7 +82,6 @@ std::string* grab_path(std::string& req)
 }
 std::string* grab_path_dir(std::string& req)
 {  
-    std::cout << req << std::endl;
     std::string *ret = new std::string();
     if (req == "/")
         *ret = req;
@@ -199,10 +207,10 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
             }
         }
         img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
-
         if (img.is_open())
         {
             data = req_body.c_str() + binary_data_start;
+            std::cout << data << "fffffff" << std::endl;
             img.write(data, req_body.length() - binary_data_start);
         }
         else
@@ -261,14 +269,16 @@ int ft_my_Post(t_client_info *client)
             {
                 client->binary_data_start = client->req_body.rfind("\r\n\r\n") + 4;
                 client->is_multipart = true;
+                client->header.filename = get_filename(client->req_body);
             }
             else
             {
+                std::string* ext = get_ext(client->req_body);
+                client->header.filename = generate_filename(*ext);
+                delete ext;
                 client->binary_data_start = client->req_body.find("\r\n\r\n") + 4;
             }
-        }
-        handle_content_length(client, client->req_body,client->binary_data_start);
-        client->req_body.clear();
+        }        // client->req_body.clear();
     }
     if (!client->is_chunked_encoding) {
         if (client->req_body.find("Transfer-Encoding: chunked") != std::string::npos) {
@@ -290,7 +300,8 @@ int ft_my_Post(t_client_info *client)
             client->req_body = client->req_body.substr(start_pos);
         }
     }
-    client->binary_data_start = 0;
+    // std::cout << client->bl << " ------ " << client->req_body << std::endl;
+    // client->binary_data_start = 0;
     client->times++;
     if (client->is_chunked_encoding && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos) {
         return 3;
@@ -321,7 +332,6 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
     if (temp.find("Content-Length") != std::string::npos && client->times == 0)
     {
         int length = get_length(temp);
-        std::cout << length << std::endl;
         if (length > working.getMaxBodySizeInBytes())
         {
             client->times++;
@@ -335,7 +345,6 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
     {
         if (client->all_received > (size_t)working.getMaxBodySizeInBytes())
         {
-            std::cout << "hmid" << std::endl;
             client->times++;
             client->header.isError = true;
             client->header.status = "413";
@@ -370,11 +379,9 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             break;
         }
 	}
-    delete client->header.file_path;
-    delete client->header.path_dir;
     // std::cout << "entred" << std::endl;
     // exit(1);
-    int ret;
+        int ret;
         if (is_Req_Err(working_location, client, working))
             return 3;
         ret = ft_my_Post(client);
@@ -389,6 +396,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
         }
         if (ret == 0)
         {
+            handle_content_length(client, client->req_body,client->binary_data_start);
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
