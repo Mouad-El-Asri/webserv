@@ -134,10 +134,6 @@ void	checkLocationReturn(Locations &location, std::istringstream &iss)
 	value = trimSpaces(value);
 	if (containsWhitespace(value))
 		throw std::runtime_error("The location return directive contains whitespaces.");
-	for (std::string::const_iterator it = value.begin(); it != value.end(); ++it) {
-        if (!std::isalnum(*it) && (*it) != '/')
-            throw std::runtime_error("The location return directive contains a non alphanum character.");
-    }
 	location.setReturn(value);
 }
 

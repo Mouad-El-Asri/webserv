@@ -18,10 +18,10 @@ std::string* convert_to_str(size_t len)
     return ret;
 }
 
-std::string* get_body(std::string& err)
+std::string* get_body(t_client_info *client, Directives &working)
 {
     std::string filename;
-    filename = "/nfs/homes/ceddibao/Desktop/webserv/default_error_pages/"+err+".html";
+    filename = working.getErrorPages()[client->header.status];
     std::ifstream file;
     file.open(filename.c_str());
     std::string *body = new std::string;
@@ -31,14 +31,23 @@ std::string* get_body(std::string& err)
     return body;
 }
 
-void response(t_client_info* client)
+void response(t_client_info* client, std::vector<int> clientSockets, std::vector<Directives> &servers)
 {
-
+    Directives working;
+    for (size_t i = 0; i < clientSockets.size(); i++)
+	{
+        if (clientSockets[i] == client->socket)
+        {
+            working = servers[i];
+            break;
+        }
+	}
+    
     std::string *body;
     std::string *cl;
     if (client->header.isError)
     {
-        body = get_body(client->header.status);
+        body = get_body(client, working);
         cl = convert_to_str((*body).length());
     }
     else
@@ -73,12 +82,21 @@ std::string* grab_path(std::string& req)
 }
 std::string* grab_path_dir(std::string& req)
 {  
-    //GET /HAMID HTTP/1.1
     std::string *ret = new std::string();
     if (req == "/")
         *ret = req;
     else
-        *ret = req.substr(0, req.rfind("/"));
+    {
+        size_t found = req.rfind("/");
+        if (found != std::string::npos && found != 0)
+        {
+            *ret = req.substr(0, req.rfind("/"));
+        }
+        else
+        {
+            *ret = req;
+        }
+    }
     return ret;
 }
 
@@ -138,7 +156,7 @@ ssize_t get_length(std::string& req)
         if (line.find("Content-Length") != std::string::npos)
         {
             size_t sep = line.find(":") + 2;
-            printf("{%ld}\n", sep);
+            // printf("{%ld}\n", sep);
             return atoi((line.substr(sep,line.length())).c_str());
         }
     }
@@ -189,11 +207,10 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
             }
         }
         img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
-
-            // Write the binary data to the "img.png" file
         if (img.is_open())
         {
             data = req_body.c_str() + binary_data_start;
+            std::cout << data << "fffffff" << std::endl;
             img.write(data, req_body.length() - binary_data_start);
         }
         else
@@ -236,7 +253,6 @@ void handle_chunked_encoding(t_client_info* client, const std::string& chunked_d
 int ft_my_Post(t_client_info *client)
 {
     size_t start_pos;
-    client->all_received+=client->received;
     if (client->request && client->received)
         client->req_body.append(client->request, client->received);
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
@@ -253,14 +269,16 @@ int ft_my_Post(t_client_info *client)
             {
                 client->binary_data_start = client->req_body.rfind("\r\n\r\n") + 4;
                 client->is_multipart = true;
+                client->header.filename = get_filename(client->req_body);
             }
             else
             {
+                std::string* ext = get_ext(client->req_body);
+                client->header.filename = generate_filename(*ext);
+                delete ext;
                 client->binary_data_start = client->req_body.find("\r\n\r\n") + 4;
             }
-        }
-        handle_content_length(client, client->req_body,client->binary_data_start);
-        client->req_body.clear();
+        }        // client->req_body.clear();
     }
     if (!client->is_chunked_encoding) {
         if (client->req_body.find("Transfer-Encoding: chunked") != std::string::npos) {
@@ -282,7 +300,8 @@ int ft_my_Post(t_client_info *client)
             client->req_body = client->req_body.substr(start_pos);
         }
     }
-    client->binary_data_start = 0;
+    // std::cout << client->bl << " ------ " << client->req_body << std::endl;
+    // client->binary_data_start = 0;
     client->times++;
     if (client->is_chunked_encoding && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos) {
         return 3;
@@ -294,6 +313,46 @@ int ft_my_Post(t_client_info *client)
     if (client->is_content_length)
         return 2;
     return 2;
+}
+
+bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
+{
+    if (client->times == 0)
+    {
+        if (loc.getAcceptedMethods()["POST"] == false)
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "405";
+            client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
+            return true;
+        }
+    }
+    std::string temp = client->request;
+    if (temp.find("Content-Length") != std::string::npos && client->times == 0)
+    {
+        int length = get_length(temp);
+        if (length > working.getMaxBodySizeInBytes())
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "413";
+            client->header.statuscode = "HTTP/1.1 419 Entity Too Big";
+            return true;
+        }
+    }
+    else
+    {
+        if (client->all_received > (size_t)working.getMaxBodySizeInBytes())
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "413";
+            client->header.statuscode = "HTTP/1.1 413 Entity Too Big";
+            return true;
+        }
+    }
+    return false;
 }
 
 int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &servers, t_client_info *client)
@@ -320,34 +379,16 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             break;
         }
 	}
-    delete client->header.file_path;
-    delete client->header.path_dir;
-    int ret;
-    if (client->times == 0)
-    {
-        std::string temp;
-        if (client->request && client->received)
-            temp.append(client->request, client->received);
-		client->header.method = grab_method(temp);
-        if (working_location.getAcceptedMethods()["POST"] == false)
-        {
-            client->times++;
-            client->header.isError = true;
-            client->header.status = "405";
-            client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
-            delete client->header.method;
+    // std::cout << "entred" << std::endl;
+    // exit(1);
+        int ret;
+        if (is_Req_Err(working_location, client, working))
             return 3;
-        }
-    }
-    if (*client->header.method == "POST")
-    {
-
         ret = ft_my_Post(client);
 	    if (ret == 3)
         {
 		    handle_chunked_encoding(client, client->req_body);
             delete client->header.filename;
-            delete client->header.method;
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
@@ -355,14 +396,13 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
         }
         if (ret == 0)
         {
+            handle_content_length(client, client->req_body,client->binary_data_start);
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
             delete client->header.filename;
-            delete client->header.method;
             return 1;
         }
-    }
     return 2;
 }
 

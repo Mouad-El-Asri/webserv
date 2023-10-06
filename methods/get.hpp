@@ -109,6 +109,7 @@ class method_get
 	void set_error_403();
 	void check_location();
 	void send_indexing(DIR *dir);
+	void execute_cgi(std::string &path, std::string &extansion, std::string &arguments);
 };
 
 class ft_delete : public method_get

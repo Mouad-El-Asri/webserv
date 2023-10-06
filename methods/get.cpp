@@ -3,64 +3,107 @@
 #define P 8081
  
 
+void method_get::execute_cgi(std::string &path, std::string &extansion, std::string &arguments)
+{
+	int fd[2];
+	pid_t pid;
+	int status;
+	char *argv[3];
+	char *envp[2];
+	std::string run_it;
+	char buf[1024];
+	std::string str;
 
-// void Cgi_handling(std::string& path, info &inf)
-// {
-// 	struct stat st;
-// 	std::string cgi;
-	
-// 	if (path.find(".php") != std::string::npos)
-// 	{
-// 		cgi = path.substr(path.find(".php") + 4, path.size());
-// 		path = path.substr(0, path.find(".php") + 4);
-// 		if (path.find("?") != std::string::npos)
-// 		{
-// 			cgi = path.substr(path.find("?") + 1, path.size());
-// 			path = path.substr(0, path.find("?"));
-// 		}
-// 	}
-// 	else if (path.find(".py") != std::string::npos)
-// 	{
-// 		cgi = path.substr(path.find(".py") + 3, path.size());
-// 		path = path.substr(0, path.find(".py") + 3);
-// 	}
-// }
 
-// int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion)
-// {
-// 	int count = 0, i = 0, a = 0;	
-// 	if (path.find(".php") != std::string::npos)
-// 	{
-// 		if (path.find(".php") + 4 == path.find("?"))
-// 		{
-// 			extansion = ".php";
-// 			path = path.substr(0, path.find("?"));
-// 			return 1;
-// 		}
-// 		else if (path.find_last_of(".php") +4  == std::string::npos)
-// 		{
-// 			extansion = ".php";
-// 			path = path.substr(0, path.find_last_of(".php") + 4);
-// 			return 1;
-// 		}
-// 	}
-// 	else if (path.find(".py") != std::string::npos)
-// 	{
-// 		if (path.find(".py") + 3 == path.find("?"))
-// 		{
-// 			extansion = ".py";
-// 			path = path.substr(0, path.find("?"));
-// 			return 1;
-// 		}
-// 		else if (path.find_last_of(".py") + 3  == std::string::npos)
-// 		{
-// 			extansion = ".py";
-// 			path = path.substr(0, path.find_last_of(".py") + 3);
-// 			return 1;
-// 		}
-// 	}
-// 	return 0;
-// }
+	pipe(fd);
+	pid = fork();
+	if (pid == 0)
+	{
+		close(fd[0]);
+		dup2(fd[1], 1);
+		argv[0] = strdup(path.c_str());
+		argv[1] = NULL;
+		envp[0] = strdup("REQUEST_METHOD=GET");
+		if (arguments != "")
+			envp[1] = strdup(arguments.c_str());
+		else
+			envp[1] = NULL;
+		if (extansion == ".php")
+			run_it = "php-cgi";
+		else if (extansion == ".py")
+			run_it = "python3";
+		execve(run_it.c_str(), argv, envp);
+		exit(0);
+	}
+	else
+	{
+		close(fd[1]);
+		waitpid(pid, &status, 0);
+		std::ofstream temp("file.txt");
+
+		while (read(fd[0], buf, 1024) > 0)
+		{
+			str = buf;
+			temp << buf;
+		}
+		close(fd[0]);
+		temp.close();
+		infa.file = new std::ifstream("file.txt");
+		if (infa.file->is_open() == false)
+		{
+			set_error_500();
+			throw std::exception();
+		}
+		struct stat st;
+		stat("file.txt", &st);
+		infa.size = st.st_size;
+		infa.status = 1;
+		std::stringstream ss;
+		ss << infa.size;
+		path = "file.txt";
+		file_handling();
+	}
+}
+
+int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion, std::string arguments)
+{	
+
+	if (path.find(".php") != std::string::npos)
+	{
+		if (path.find(".php") + 4 == path.find("?"))
+		{
+			extansion = ".php";
+			real_path = path.substr(0, path.find("?"));
+			arguments = "QUERY_STRING=" + path.substr(path.find("?") + 1, path.size());
+			return 1;
+		}
+		else if (path.find_last_of(".php") +4  == std::string::npos)
+		{
+			extansion = ".php";
+			real_path = path.substr(0, path.find_last_of(".php") + 4);
+			arguments = "";
+			return 1;
+		}
+	}
+	else if (path.find(".py") != std::string::npos)
+	{
+		if (path.find(".py") + 3 == path.find("?"))
+		{
+			extansion = ".py";
+			real_path = path.substr(0, path.find("?"));
+			arguments = "QUERY_STRING=" + path.substr(path.find("?") + 1, path.size());
+			return 1;
+		}
+		else if (path.find_last_of(".py") + 3  == std::string::npos)
+		{
+			extansion = ".py";
+			real_path = path.substr(0, path.find_last_of(".py") + 3);
+			arguments = "";
+			return 1;
+		}
+	}
+	return 0;
+}
 
 void method_get::check_location()
 {
@@ -68,8 +111,9 @@ void method_get::check_location()
 	std::string let;
 	size_t i = 0;
 	int max_lenght = 0;
-	// int checked_cgi = 0;
-	int size = 0;
+	std::string ext;
+	std::string arguments;
+	int checked_cgi = 0;
 	int is_checked = 0;
 	while (i < keep.getLocationsVec().size())
 	{
@@ -85,27 +129,29 @@ void method_get::check_location()
 				if (route[route.size() - 1] != '/')
 					route += "/";
 				path = route + url.substr(size, url.size());
-				// if (!keep.getLocationsVec()[i].getCgi().empty())
-				// {
-				// 	std::string ext;
-				// 	if (check_is_cgi(path, let, ext)== 1)
-				// 	{
-				// 		if (keep.getLocationsVec()[i].getCgi()[ext] == ".php" || keep.getLocationsVec()[i].getCgi()[ext] == ".py")
-				// 		{
-				// 			checked_cgi = 1;
-				// 		}
-				// 		else 
-				// 			checked_cgi = 0;
-				// 	}
-				// }
-				// else 
-				// 	checked_cgi = 0;
-				// if (keep.getLocationsVec()[i].getReturn() != "")
-				// {
-				// 	this->infa.buffer_to_send = "HTTP/1.1 " + keep.getLocationsVec()[i].getReturn() + "\nContent-Type: text/html\nContent-Length: 0\n\n";
-				// 	this->infa.status = 1;
-				// 	throw std::exception();					
-				// }
+				std::cout << keep.getLocationsVec()[i].getCgi()[".php"] << std::endl;
+				if (keep.getLocationsVec()[i].getCgi().size() != 0)
+				{
+					std::cout << "THe path is: " << path << std::endl;
+					std::string ext;
+					if (check_is_cgi(path, let, ext, arguments)== 1)
+					{
+						if (keep.getLocationsVec()[i].getCgi()[ext] == ".php" || keep.getLocationsVec()[i].getCgi()[ext] == ".py")
+							checked_cgi = 1;
+						else 
+							checked_cgi = 0;
+					}
+				}
+				else 
+					checked_cgi = 0;
+				if (keep.getLocationsVec()[i].getReturn() != "")
+				{
+					std::cout << "THe path is entered here " << std::endl;
+					std::cout << keep.getLocationsVec()[i].getReturn() << std::endl;
+					infa.buffer_to_send = "HTTP/1.1 302 " + keep.getLocationsVec()[i].getReturn() + "\nContent-Type: text/html\nContent-Length: 0\r\n\r\n";
+					this->infa.status = 1;
+					throw std::exception();					
+				}
 				is_checked = 1;
 				forbidden = 0;
 			}
@@ -120,8 +166,11 @@ void method_get::check_location()
 		set_error_403();
 		throw std::exception();
 	}
-	// if (checked_cgi == 1)
-	// 	execute_cgi(let);
+	if (checked_cgi == 1)
+	{
+		execute_cgi(let, ext, arguments);
+		throw std::exception();
+	}
 	if (is_checked == 0)
 	{
 		set_error_404();
@@ -143,11 +192,11 @@ void method_get::get_check_path()
 	if (stat(path.c_str() , &st) == 0)
 	{
 		try{
-	    if (access(path.c_str(), W_OK | X_OK) == -1)
-        {
-            set_error_403();
-            throw std::exception();
-        }
+			if (access(path.c_str(), R_OK) == -1)
+			{
+				set_error_403();
+				throw std::exception();
+			}
 			this->size = st.st_size;
 			infa.size = st.st_size;
 			if (S_ISDIR(st.st_mode))
