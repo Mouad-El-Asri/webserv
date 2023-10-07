@@ -10,6 +10,7 @@ Locations::Locations()
 	this->index.clear();
 	this->autoIndex = false;
 	this->Return = "";
+	this->cgiAllowed = false;
 	this->cgi.clear();
 	this->uploadStore = "../uploads";
 }
@@ -29,6 +30,7 @@ Locations&	Locations::operator=(const Locations &other)
 		this->index = other.index;
 		this->autoIndex = other.autoIndex;
 		this->Return = other.Return;
+		this->cgiAllowed = other.cgiAllowed;
 		this->cgi = other.cgi;
 		this->uploadStore = other.uploadStore;
 	}
@@ -45,6 +47,7 @@ void	Locations::clearLocation()
 	this->index.clear();
 	this->autoIndex = false;
 	this->Return = "";
+	this->cgiAllowed = false;
 	this->cgi.clear();
 	this->uploadStore = "";
 }
@@ -77,6 +80,11 @@ bool	Locations::getAutoIndex() const
 std::string	Locations::getReturn() const
 {
 	return (this->Return);
+}
+
+bool	Locations::getCgiAllowed() const
+{
+	return (this->cgiAllowed);
 }
 
 std::map<std::string, std::string>	Locations::getCgi() const
@@ -117,6 +125,11 @@ void	Locations::setAutoIndex(const bool& autoIndex)
 void	Locations::setReturn(const std::string& Return)
 {
 	this->Return = Return;
+}
+
+void	Locations::setCgiAllowed(const bool& cgiAllowed)
+{
+	this->cgiAllowed = cgiAllowed;
 }
 
 void	Locations::setCgi(const std::string& key, const std::string& value)
