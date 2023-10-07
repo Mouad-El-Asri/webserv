@@ -199,23 +199,27 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
         {
             if (client->req_body.find("multipart/form-data") != std::string::npos)
                 client->header.filename = get_filename(req_body);
-            else
+            else if (client->req_body.find("Content-Type") != std::string::npos)
             {
                 std::string* ext = get_ext(req_body);
                 client->header.filename = generate_filename(*ext);
                 delete ext;
             }
+            else
+            {
+                client->header.filename = new std::string();
+            }
         }
         img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
         if (img.is_open())
         {
+
             data = req_body.c_str() + binary_data_start;
-            std::cout << data << "fffffff" << std::endl;
             img.write(data, req_body.length() - binary_data_start);
         }
         else
         {
-            std::cerr << "Error: Could not open img.png for writing." << std::endl;
+            std::cerr << "Error: Could not open file for writing." << std::endl;
         }
         img.close();
 }
@@ -317,6 +321,7 @@ int ft_my_Post(t_client_info *client)
 
 bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
 {
+    std::string temp = client->request;
     if (client->times == 0)
     {
         if (loc.getLocation() == "")
@@ -335,8 +340,15 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
             client->header.statuscode = "HTTP/1.1 405 Method Not Allowed";
             return true;
         }
+        if (temp.find("Content-Length") != std::string::npos && temp.find("Transfer-Encoding") != std::string::npos)
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "400";
+            client->header.statuscode = "HTTP/1.1 400 Bad Request";
+            return true;
+        }
     }
-    std::string temp = client->request;
     if (temp.find("Content-Length") != std::string::npos && client->times == 0)
     {
         int length = get_length(temp);
