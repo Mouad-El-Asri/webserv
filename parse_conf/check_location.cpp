@@ -122,6 +122,26 @@ void	checkLocationCgi(Locations &location, std::istringstream &iss)
 	location.setCgi(result[0], result[1]);
 }
 
+void	checkLocationCgiAllowed(Locations &location, std::istringstream &iss)
+{
+	std::string value;
+
+	if (location.getCgiAllowed())
+		throw std::runtime_error("The location cgi-allowed directive already exists.");
+	std::getline(iss, value);
+	if (value.empty() || isOnlyWhitespaces(value))
+		throw std::runtime_error("The location cgi-allowed directive is empty or contains only whitespaces.");
+	value = trimSpaces(value);
+	if (containsWhitespace(value))
+		throw std::runtime_error("The location cgi-allowed value contains whitespaces.");
+	if (value == "on" || value == "ON")
+		location.setCgiAllowed(true);
+	else if (value == "off" || value == "OFF")
+		location.setCgiAllowed(false);
+	else
+		throw std::runtime_error("The location cgi-allowed value is not valid.");
+}
+
 void	checkLocationReturn(Locations &location, std::istringstream &iss)
 {
 	std::string value;
@@ -166,6 +186,8 @@ void	checkLocation(Locations &location, std::istringstream &iss, std::string dir
 		checkLocationAcceptedMethods(location, iss);
 	else if (directive == "return")
 		checkLocationReturn(location, iss);
+	else if (directive == "cgi-allowed")
+		checkLocationCgiAllowed(location, iss);
 	else if (directive == "cgi")
 		checkLocationCgi(location, iss);
 	else if (directive == "upload_store")

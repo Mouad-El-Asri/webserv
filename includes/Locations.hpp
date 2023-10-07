@@ -14,6 +14,7 @@ class Locations
 		std::vector<std::string>			index;
 		bool								autoIndex;
 		std::string							Return;
+		bool								cgiAllowed;
 		std::map<std::string, std::string>	cgi;
 		std::string							uploadStore;
 
@@ -30,6 +31,7 @@ class Locations
 		std::vector<std::string>			getIndex() const;
 		bool								getAutoIndex() const;
 		std::string							getReturn() const;
+		bool								getCgiAllowed() const;
 		std::map<std::string, std::string>	getCgi() const;
 		std::string							getUploadStore() const;
 
@@ -39,6 +41,7 @@ class Locations
 		void	setIndex(const std::string& index);
 		void	setAutoIndex(const bool& autoIndex);
 		void	setReturn(const std::string& Return);
+		void	setCgiAllowed(const bool& cgiAllowed);
 		void	setCgi(const std::string& key, const std::string& value);
 		void	setUploadStore(const std::string& uploadStore);
 };
