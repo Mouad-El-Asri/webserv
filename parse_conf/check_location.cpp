@@ -117,7 +117,7 @@ void	checkLocationCgi(Locations &location, std::istringstream &iss)
 	if (result.size() != 2)
 		throw std::runtime_error("The location cgi directive syntax is invalid.");
 	if ((result[0] != ".py" || result[1] != "/bin/python3") && \
-			(result[0] != ".php" || result[1] != "/bin/php"))
+			(result[0] != ".php" || result[1] != "/usr/bin/php")) //here change to /usr/bin/php
 		throw std::runtime_error("The location cgi directive is not valid.");
 	location.setCgi(result[0], result[1]);
 }

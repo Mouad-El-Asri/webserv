@@ -20,6 +20,7 @@ public:
     std::string fst_line;
     std::string *method;
     std::string *path_dir;
+	std::string *path_p;
     std::string *file_path;
 	std::string *filename;
 	std::string statuscode;
@@ -34,9 +35,12 @@ typedef struct s_client_info {
 	char					request[1024];
 	ssize_t					received;
 	size_t					all_received;
+	bool					cgi;
 	bool					is_chunked_encoding;
     bool					is_content_length;
 	bool					is_multipart;
+	bool					isCookieSet;
+	bool					isSession;
 	size_t					times;
 	size_t					bl;
 	size_t					binary_data_start;
@@ -51,7 +55,7 @@ typedef struct s_client_info {
 	Directives				directive;
 	s_client_info			*next;
 
-	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), is_chunked_encoding(false), is_content_length(false), is_multipart(false), times(0), bl(0), next(NULL)
+	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), cgi(false) ,is_chunked_encoding(false), is_content_length(false), is_multipart(false), isCookieSet(false) , isSession(false),times(0), bl(0), next(NULL)
 	{
 		Info = new info;
         memset(&address, 0, sizeof(address));

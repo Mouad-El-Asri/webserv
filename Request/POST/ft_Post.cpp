@@ -34,6 +34,7 @@ std::string* get_body(t_client_info *client, Directives &working)
 void response(t_client_info* client, std::vector<int> clientSockets, std::vector<Directives> &servers)
 {
     Directives working;
+    std::string res_total;
     for (size_t i = 0; i < clientSockets.size(); i++)
 	{
         if (clientSockets[i] == client->socket)
@@ -50,17 +51,26 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         body = get_body(client, working);
         cl = convert_to_str((*body).length());
     }
+    else if (client->cgi || client->isSession)
+    {
+        if (client->cgi)
+            body = handle_cgi(client, working, 0);
+        else
+            body = handle_cgi(client, working, 1);
+        cl = convert_to_str((*body).length());
+        // client->header.statuscode = "HTTP/1.1 200 Forbidden";
+    }
     else
     {
         body = new std::string("");
         cl = new std::string("0");
     }
-    std::string res_total = client->header.statuscode + "\r\n"\
+    res_total = client->header.statuscode + "\r\n"\
     "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
     "Server: 0rph1no/1.1\r\n" \
     "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\r\n" \
     "ETag: \"56d-9989200-1132c580\"\r\n" \
-    "Content-Type: text/html\r\n" \
+    "Content-Type: application/x-httpd-php\r\n" \
     "Content-Length: "+*cl+"\r\n" \
     "Accept-Ranges: bytes\r\n" \
     "Connection: close\r\n" \
@@ -100,39 +110,57 @@ std::string* grab_path_dir(std::string& req)
     return ret;
 }
 
-std::string* handle_cgi()
+std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
 {
-    // int fds[2];
-    // int ret = pipe(fds);
-    // if (ret < 0)
-    // {
-    //     perror("pipe");
-    //     exit(3);
-    // }
-    // pid_t child = fork();
-    // if (ret < 0)
-    // {
-    //     perror("child");
-    //     exit(2);
-    // } 
-    // dup2(1, fds[1]);
-    // if (child == 0)
-    // {
-    //     char *cmds[3] = {"/bin/php", "test.php", NULL};
-    //     ret = execve("/bin/php",cmds,NULL);
-    //     std::cout << "sdfdsfdsfdsfdsfsdfsdfsdfsdfdsfsdfdsfdsfsdf\n";
-    //     exit(0);
-    // }
-    // close(fds[1]);
-    // close(fds[0]);
-    // wait(NULL);
-    // char buff[1000];
-    // bzero(buff,sizeof(buff));
-    // int readen = read(fds[0], buff, 999);
-    // std::string *ret_str = new std::string();
-    // ret_str->append(buff, readen);
-    // return ret_str;
-    return NULL;
+    std::string *ret = new std::string();
+    std::string filename = client->header.path_p->substr(client->header.path_p->rfind("/"));
+    if (flag == 0)
+    {
+        (void)working;
+        int fd[2];
+        pid_t pid;
+        char *argv[3];
+        char *envp[13];
+        char buf[1024];
+        std::string str;
+
+        pipe(fd);
+        pid = fork();
+        if (pid == 0)
+        {
+            filename = "cgi-bin"+filename;
+            close(fd[0]);
+            dup2(fd[1], 1);
+            envp[0] = strdup("REQUEST_METHOD=POST");
+            envp[1] = strdup("REDIRECT_STATUS=200");
+            envp[2] = strdup("Test=Hamid");
+            envp[3] = strdup("File=echo.php");
+            argv[0] = strdup("/usr/bin/php");
+            argv[1] = strdup(filename.c_str());
+            argv[2] = NULL;
+            envp[4] = NULL;
+            execve("/usr/bin/php", argv, envp);
+            exit(0);
+        }
+        close(fd[1]);
+        wait(NULL);
+        bzero(buf, sizeof(buf));
+        read(fd[0], buf, 1023);
+        *ret = buf;
+    }
+    filename = "sessions"+filename;
+    std::cout << filename.c_str() << std::endl;
+    std::ifstream file;
+    file.open(filename.c_str());
+    if (!file.is_open())
+        std::cout << "Error, could not open the file" << std::endl;
+    std::string line;
+    while(std::getline(file,line))
+    {
+        *ret+=line;
+        *ret+="\r\n";
+    }
+    return ret;
 }
 
 size_t hextodec(const char *s)
@@ -259,6 +287,8 @@ int ft_my_Post(t_client_info *client)
     size_t start_pos;
     if (client->received)
         client->req_body.append(client->request, client->received);
+    if (client->times == 0)
+        client->header.fst_line = client->req_body.substr(0, client->req_body.find("\r\n"));
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
         if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
             return 0;
@@ -380,6 +410,12 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
     std::string temp = client->request;
     client->header.file_path = grab_path(temp);
     client->header.path_dir = grab_path_dir(*client->header.file_path);
+    if (client->times == 0)
+    {
+        client->header.path_p = grab_path(temp);
+        if (*client->header.path_dir == "/sessions")
+            client->isSession = true;
+    }
     Directives working;
     for (size_t i = 0; i < clientSockets.size(); i++)
 	{
@@ -399,6 +435,10 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             break;
         }
 	}
+        if (working_location.getCgi()[".php"] != "")
+        {
+            client->cgi = true;
+        }
         int ret;
         if (is_Req_Err(working_location, client, working))
             return 3;

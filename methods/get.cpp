@@ -54,6 +54,7 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 	else
 	{
 		close(fd[1]);
+		close(fd[0]);
 		wait(NULL); // Elhazin I have an error here , it hungs on wait :(
 		std::ofstream temp(".file.txt");
 		while (read(fd[0], buf, 1024) > 0)
