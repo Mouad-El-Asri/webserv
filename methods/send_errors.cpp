@@ -1,3 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   send_errors.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/10/07 03:57:31 by abouzanb          #+#    #+#             */
+/*   Updated: 2023/10/07 03:57:32 by abouzanb         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
+
+
 #include "get.hpp"
 
 void method_get::set_error_500()
@@ -17,28 +32,24 @@ void method_get::set_error_500()
 
 void	method_get::set_error_403()
 {
-	std::cout << "error 403" << std::endl;	
+	std::stringstream ss ;
+	std::string ext;
 	struct stat st;
-
 	this ->path  = erros_page["403"];
 	this->file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!file->is_open())
 	{
-		infa.buffer_to_send = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n <html><body><h1>403 Forbidden</h1></body></html>";
+		this->set_error_500();
 		infa.status = 1;
-		infa.file = NULL;
 		return;
 	}
 	stat(path.c_str() , &st);
 	this->size = st.st_size;
 	infa.size = st.st_size;
-	std::stringstream ss ;
-	std::string ext;
 	ext = extansion_handling["403"];
 	ss << this->size;
 	ext += ss.str();
-	ext += "\r\n";
-	ext += "\r\n";
+	ext += "\r\n\r\n";
 	this->infa.buffer_to_send = ext;
 	this->infa.status = 1;
 	infa.file = file;
@@ -46,26 +57,23 @@ void	method_get::set_error_403()
 
 void	method_get::set_error_404()
 {
-	std::cout << "error 404" << std::endl;
 	struct stat st;
+	std::stringstream	ss;
+	std::string			ext;
 	this ->path  = erros_page["404"];
 	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!infa.file->is_open())
 	{
-	std::cout << "this ->path  = erros_page[404];" <<  this->path <<  std::endl;
 		this->set_error_500();
 		return;
 	}
 	stat(path.c_str() , &st);
 	this->size = 		st.st_size;
 	infa.size = 		st.st_size;
-	std::stringstream	ss;
-	std::string			ext;
 	ext = extansion_handling["404"];
 	ss << this->size;
 	ext += ss.str();
-	ext += "\r\n";
-	ext += "\r\n";
+	ext += "\r\n\r\n";
 	this->infa.buffer_to_send = ext;
 	this->infa.status = 1;
 }

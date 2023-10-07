@@ -1,16 +1,30 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get.cpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/10/07 03:56:24 by abouzanb          #+#    #+#             */
+/*   Updated: 2023/10/07 08:43:47 by abouzanb         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get.hpp"
 #include "../Multiplexing/multiplexing.hpp"
 #define P 8081
+
+
+
+// hndling cgi
  
 
-void method_get::execute_cgi(std::string &path, std::string &extansion, std::string &arguments)
+void method_get::execute_cgi(std::string &path, std::string &arguments, std::string& run_it)
 {
 	int fd[2];
 	pid_t pid;
-	int status;
 	char *argv[3];
-	char *envp[2];
-	std::string run_it;
+	char *envp[5];
 	char buf[1024];
 	std::string str;
 
@@ -24,23 +38,24 @@ void method_get::execute_cgi(std::string &path, std::string &extansion, std::str
 		argv[0] = strdup(path.c_str());
 		argv[1] = NULL;
 		envp[0] = strdup("REQUEST_METHOD=GET");
+		envp[1] = strdup("REDIRECT_STATUS=200");
+		str = "SCRIPT_NAME=" + path;
+		envp[2] = strdup(str.c_str());
 		if (arguments != "")
-			envp[1] = strdup(arguments.c_str());
+		{
+			envp[3] = strdup(arguments.c_str());
+			envp[4] = NULL;	
+		}
 		else
-			envp[1] = NULL;
-		if (extansion == ".php")
-			run_it = "php-cgi";
-		else if (extansion == ".py")
-			run_it = "python3";
+			envp[3] = NULL;
 		execve(run_it.c_str(), argv, envp);
 		exit(0);
 	}
 	else
 	{
 		close(fd[1]);
-		waitpid(pid, &status, 0);
-		std::ofstream temp("file.txt");
-
+		wait(NULL); // Elhazin I have an error here , it hungs on wait :(
+		std::ofstream temp(".file.txt");
 		while (read(fd[0], buf, 1024) > 0)
 		{
 			str = buf;
@@ -48,26 +63,25 @@ void method_get::execute_cgi(std::string &path, std::string &extansion, std::str
 		}
 		close(fd[0]);
 		temp.close();
-		infa.file = new std::ifstream("file.txt");
+		infa.file = new std::ifstream(".file.txt");
 		if (infa.file->is_open() == false)
 		{
 			set_error_500();
 			throw std::exception();
 		}
 		struct stat st;
-		stat("file.txt", &st);
+		stat(".file.txt", &st);
 		infa.size = st.st_size;
 		infa.status = 1;
 		std::stringstream ss;
 		ss << infa.size;
-		path = "file.txt";
+		path = ".file.txt";
 		file_handling();
 	}
 }
 
 int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion, std::string arguments)
 {	
-
 	if (path.find(".php") != std::string::npos)
 	{
 		if (path.find(".php") + 4 == path.find("?"))
@@ -77,10 +91,10 @@ int check_is_cgi(std::string& path, std::string& real_path, std::string& extansi
 			arguments = "QUERY_STRING=" + path.substr(path.find("?") + 1, path.size());
 			return 1;
 		}
-		else if (path.find_last_of(".php") +4  == std::string::npos)
+		else if (path.size() >= 4 && path.substr(path.size() - 4) == ".php")
 		{
 			extansion = ".php";
-			real_path = path.substr(0, path.find_last_of(".php") + 4);
+			real_path = path;
 			arguments = "";
 			return 1;
 		}
@@ -105,6 +119,9 @@ int check_is_cgi(std::string& path, std::string& real_path, std::string& extansi
 	return 0;
 }
 
+
+// handling the request
+
 void method_get::check_location()
 {
 	int forbidden = 0;
@@ -114,6 +131,7 @@ void method_get::check_location()
 	std::string ext;
 	std::string arguments;
 	int checked_cgi = 0;
+	std::string cgi_script;
 	int is_checked = 0;
 	while (i < keep.getLocationsVec().size())
 	{
@@ -132,12 +150,15 @@ void method_get::check_location()
 				std::cout << keep.getLocationsVec()[i].getCgi()[".php"] << std::endl;
 				if (keep.getLocationsVec()[i].getCgi().size() != 0)
 				{
-					std::cout << "THe path is: " << path << std::endl;
 					std::string ext;
 					if (check_is_cgi(path, let, ext, arguments)== 1)
 					{
-						if (keep.getLocationsVec()[i].getCgi()[ext] == ".php" || keep.getLocationsVec()[i].getCgi()[ext] == ".py")
+
+						if (keep.getLocationsVec()[i].getCgi()[ext] == "/bin/php" || keep.getLocationsVec()[i].getCgi()[ext] == "/bin/python3")
+						{
 							checked_cgi = 1;
+							cgi_script = keep.getLocationsVec()[i].getCgi()[ext];
+						}
 						else 
 							checked_cgi = 0;
 					}
@@ -146,7 +167,6 @@ void method_get::check_location()
 					checked_cgi = 0;
 				if (keep.getLocationsVec()[i].getReturn() != "")
 				{
-					std::cout << "THe path is entered here " << std::endl;
 					std::cout << keep.getLocationsVec()[i].getReturn() << std::endl;
 					infa.buffer_to_send = "HTTP/1.1 302 " + keep.getLocationsVec()[i].getReturn() + "\nContent-Type: text/html\nContent-Length: 0\r\n\r\n";
 					this->infa.status = 1;
@@ -164,17 +184,17 @@ void method_get::check_location()
 	if (forbidden == 1)
 	{
 		set_error_403();
-		throw std::exception();
+		throw std::runtime_error("\e[91mError: The method is not allowed. response with 403\e[0m");
 	}
 	if (checked_cgi == 1)
 	{
-		execute_cgi(let, ext, arguments);
-		throw std::exception();
+		execute_cgi(let,  arguments, cgi_script);
+		throw std::runtime_error("\e[91mThe cgi is executed\e[0m");
 	}
 	if (is_checked == 0)
 	{
 		set_error_404();
-		throw std::exception();
+		throw std::runtime_error("\e[91mError: The location is not found. response with 404\e[0m");
 	}
 }
 
@@ -182,49 +202,38 @@ void method_get::get_check_path()
 {
 	struct stat st;
 	try {
-		std::cout << "path: " << path << std::endl;
-	check_location();
-	}
-	catch (std::exception &e)
-	{
-		return ;
-	}
-	if (stat(path.c_str() , &st) == 0)
-	{
-		try{
-			if (access(path.c_str(), R_OK) == -1)
+			check_location();
+			if (stat(path.c_str() , &st) == 0)
 			{
-				set_error_403();
-				throw std::exception();
+					if (access(path.c_str(), R_OK) == -1)
+					{
+						set_error_403();
+						throw std::runtime_error("\e[91mError: The file is not readable. response with 403\e[0m");
+					}
+					this->size = st.st_size;
+					infa.size = st.st_size;
+					if (S_ISDIR(st.st_mode))
+						folder_handling();
+					else
+					{
+						file_handling();
+					throw 	std::runtime_error("\e[42mFile is requested , resopnse with file\e[0m");
+					}
 			}
-			this->size = st.st_size;
-			infa.size = st.st_size;
-			if (S_ISDIR(st.st_mode))
-				folder_handling();
 			else
-				file_handling();
-		}
-		catch (const std::exception& e)
-		{
-			return ;
-		}
+			{
+				set_error_404();
+				throw std::runtime_error("\e[91mError: The file is not found. response with 404\e[0m");
+			}
 	}
-	else 
+	catch (const std::exception& e)
 	{
-		set_error_404();
+		std::cout << "\e[36mGET METHOD  : "  << e.what() << std::endl;
 	}
 }
 
-
-method_get::method_get(Directives& k , std::string url, info &inf) : infa(inf) , keep(k)
+void method_get::set_extasion()
 {
-	this->keep = k;
-	std::string route = k.getRoot();
-	this->path = route + url;
-	auto_index = k.getAutoIndex();
-	this->url = url;
-	infa.path = path;
-	this->erros_page = k.getErrorPages();
 	std::string moth = "HTTP/1.1 200 OK\n";
 	extansion_handling[".html"] = moth + "Content-Type: text/html\nContent-Length: ";
 	extansion_handling[".css"] = moth + "Content-Type: text/css\nContent-Length: ";
@@ -242,6 +251,18 @@ method_get::method_get(Directives& k , std::string url, info &inf) : infa(inf) ,
 	extansion_handling["500"] = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length: ";
 }
 
+method_get::method_get(Directives& k , std::string url, info &inf) : infa(inf) , keep(k)
+{
+	this->keep = k;
+	std::string route = k.getRoot();
+	this->path = route + url;
+	auto_index = k.getAutoIndex();
+	this->url = url;
+	infa.path = path;
+	this->erros_page = k.getErrorPages();
+	this->set_extasion();
+}
+
 
 void ft_get(Directives &data, std::string url,  info &socket)
 {
@@ -252,59 +273,53 @@ void ft_get(Directives &data, std::string url,  info &socket)
 	socket.was_read = 1;
 }
 
-void close_socket(std::vector<info> &clientes, size_t& i , fd_set &writefds, fd_set &readfds)
+
+
+
+
+
+// response part 
+void send_file_in_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
-	if (clientes[i].file)
-		clientes[i].file->close();
-	FD_CLR(clientes[i].socket, &writefds);
-	FD_CLR(clientes[i].socket, &readfds);
-	close(clientes[i].socket);
-	delete clientes[i].file;
-	clientes.erase(clientes.begin() + i);
+	char bu[1025];
+	clientes.file->read(bu, 1024);
+	int reading = clientes.file->gcount();
+	std::cout << "\e[96mGET : \e[42mSending data to the socket " << clientes.socket << "\e[0m" << std::endl;
+	int sending   = send(clientes.socket, bu, reading, 0) ;
+	if	(sending <= 0)
+	{
+		std::cout << "\e[91mGet : \e[42mError : an error occured with the socket " << clientes.socket <<  ", while sending the file\e[0m" << std::endl;
+		if (clientes.file)
+			clientes.file->close();
+		drop_client(client_write, clients, reads, writes);
+		return ;
+	}
+}
+
+void send_header_in_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
+{
+	std::cout << "\e[96mGET : \e[42mSending header to the socket " << clientes.socket << "\e[0m" << std::endl;
+	if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) < 0)
+	{
+		if (clientes.file)
+			clientes.file->close();
+		drop_client(client_write, clients, reads, writes);
+		return ;
+	}
+	clientes.status = 0;	
 }
 
 void	get_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
-	char bu[1025];
-	static int	count = 0;
 	if (clientes.status == 1)
-	{
-		std::cout << "--------------> " << clientes.buffer_to_send <<  std::endl;
-		if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) < 0)
-		{
-			if (clientes.file)
-				clientes.file->close();
-			drop_client(client_write, clients, reads, writes);
-			return ;
-		}
-		clientes.status = 0;
-	}
-	if (clientes.file && clientes.file->eof() == false)
-	{
-		clientes.file->read(bu, 1024);
-		int reading = clientes.file->gcount();
-		int sending   = send(clientes.socket, bu, reading, 0) ;
-		count += sending;
-		if	(sending < 0)
-		{
-			std::cout << "FAILED TO SEND THE File" << std::endl;
-			if (clientes.file)
-				clientes.file->close();
-			drop_client(client_write, clients, reads, writes);
-			return ;
-		}
-		if(sending == 0)
-		{
-			std::cout << "hunging conection---------------------------------- " << std::endl;
-		}
-	}
+		send_header_in_response(clientes, client_write, clients, reads, writes);
+	else if (clientes.file && clientes.file->eof() == false)
+		send_file_in_response(clientes, client_write, clients, reads, writes);
 	else
 	{
-		std::cout << "ending conection " << std::endl;
+		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "\e[0m" << std::endl;
 		if (clientes.file)
 			clientes.file->close();
-		std::cout << "the original size : " << clientes.size  << "      sended size     " << count << std::endl;
-		count = 0;
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}

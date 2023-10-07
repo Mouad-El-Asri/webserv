@@ -25,27 +25,34 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		std::string version = headers.substr(headers.find(" ", start) + 1, headers.find("\r\n") - headers.find(" ", start) - 1);
 		if (check_spaces(headers) != 2)
 		{
+			std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
 			client->Info->status = 1;
+			FD_SET(client->socket, &writes);
 			return 1;
 		}
 		if (client->method != "GET" && client->method != "POST" && client->method != "DELETE")
 		{
+			std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 501 Not Implemented\r\n\r\n";
 			client->Info->status = 1;
+			FD_SET(client->socket, &writes);
+
 			return 1;
 		}
 		if (version != "HTTP/1.1")
 		{
+			std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 505 HTTP Version Not Supported\r\n\r\n";
 			client->Info->status = 1;
+			FD_SET(client->socket, &writes);
 			return 1;
 		}
 	}
 	if (client->method == "GET")
 	{
 		client->method = "GET";
-		std::cout << "GET method is requested " << std::endl;
+		std::cout << "\e[96mMethod : GET\e[0m" << std::endl;
 		client->Info->socket = client->socket;
 		ft_get(*(client->data), client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
@@ -56,8 +63,6 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	{
 		client->method = "POST";
 		ret = handle_Post(clientSockets, serversVec, client);
-		// std::cout << "ret ----- " << ret << std::endl;
-		// exit(1);
 		if (ret == 3)
 		{
 			std::cout << "it gave 3" << std::endl;
@@ -77,6 +82,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else if (client->method == "DELETE")
 	{
+		std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
 		client->method = "DELETE";
 		client->Info->socket = client->socket;
 		ft_delete(*(client->data) , client->url, *(client->Info));
@@ -85,6 +91,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else 
 	{
+		std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
 		client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
 		client->Info->status = 1;
 		return 1;
@@ -143,12 +150,10 @@ void	runServer(Servers &servers)
 		t_client_info *client = clients;
 		while(client)
 		{
-			std::cout << "2 time nigga " << std::endl;
 			t_client_info *next = client->next;
 			if (FD_ISSET(client->socket, &tempReads))
 			{
-				std::cout << client->socket << std::endl;
-				std::cout << "Reading from client " << get_client_address(client) << "." << std::endl;
+				
 				client->received = recv(client->socket, client->request, 1024, 0);
 				client->all_received+=client->received;
 				if (client->received == -1)
@@ -177,7 +182,6 @@ void	runServer(Servers &servers)
 			t_client_info *next = client_write->next;
 			if (FD_ISSET(client_write->socket, &tempWrites))
 			{
-				std::cout << "in responce" << std::endl;
 				if (client_write->method == "POST")
 				{
 					std::cout << "---------------" << client_write->socket << std::endl;

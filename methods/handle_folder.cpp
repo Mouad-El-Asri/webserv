@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handle_folder.cpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/10/07 03:57:04 by abouzanb          #+#    #+#             */
+/*   Updated: 2023/10/07 03:57:05 by abouzanb         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 
 #include "get.hpp"
 
@@ -22,6 +34,7 @@ void method_get::send_indexing(DIR *dir)
 	stat(path.c_str() , &st);
 	this->size = st.st_size;
 	file_handling();
+	std::runtime_error("\e[91mFolder is requested , resopnse with indexing its content\e[0m");
 }
 
 void	method_get::handle_auto_index()
@@ -49,7 +62,7 @@ void	method_get::folder_handling()
 			infa.size = st.st_size;
 			this->path = temp;
 			file_handling();
-			throw std::exception();
+			throw std::runtime_error("\e[91mFolder is requested , resopnse with index\e[0m");
 		}
 		i++;
 	}
