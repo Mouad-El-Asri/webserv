@@ -170,7 +170,7 @@ void	runServer(Servers &servers)
 				{
                     std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
 					std::string header = client->request;
-					check_which_method(header, client, tempWrites, clientSockets, serversVec);
+					check_which_method(header, client, writes, clientSockets, serversVec);
 				}
 			}
 			client = next;
@@ -190,6 +190,7 @@ void	runServer(Servers &servers)
 				}
 				else
 				{
+					printf("sdfsdfdsfsfdsf\n");
 					get_response(*(client_write->Info), client_write, &clients, reads, writes);
 				}
 			}

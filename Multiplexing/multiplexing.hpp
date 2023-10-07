@@ -1,5 +1,5 @@
 #ifndef MULTIPLEXING_HPP
-#define MULTEPLEXING_HPP
+#define MULTIPLEXING_HPP
 
 #include <sys/socket.h>
 #include <sys/select.h>

@@ -314,7 +314,9 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 	if (clientes.status == 1)
 		send_header_in_response(clientes, client_write, clients, reads, writes);
 	else if (clientes.file && clientes.file->eof() == false)
+	{
 		send_file_in_response(clientes, client_write, clients, reads, writes);
+	}
 	else
 	{
 		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "\e[0m" << std::endl;

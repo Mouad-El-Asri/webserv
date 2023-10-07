@@ -253,7 +253,7 @@ void handle_chunked_encoding(t_client_info* client, const std::string& chunked_d
 int ft_my_Post(t_client_info *client)
 {
     size_t start_pos;
-    if (client->request && client->received)
+    if (client->received)
         client->req_body.append(client->request, client->received);
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
         if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
@@ -319,6 +319,14 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
 {
     if (client->times == 0)
     {
+        if (loc.getLocation() == "")
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "403";
+            client->header.statuscode = "HTTP/1.1 403 Forbidden";
+            return true;
+        }
         if (loc.getAcceptedMethods()["POST"] == false)
         {
             client->times++;
@@ -379,8 +387,6 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             break;
         }
 	}
-    // std::cout << "entred" << std::endl;
-    // exit(1);
         int ret;
         if (is_Req_Err(working_location, client, working))
             return 3;
@@ -400,7 +406,6 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
-            delete client->header.filename;
             return 1;
         }
     return 2;
