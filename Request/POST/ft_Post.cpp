@@ -33,30 +33,23 @@ std::string* get_body(t_client_info *client, Directives &working)
 
 void response(t_client_info* client, std::vector<int> clientSockets, std::vector<Directives> &servers)
 {
-    Directives working;
+    (void)servers;
+    (void)clientSockets;
     std::string res_total;
-    for (size_t i = 0; i < clientSockets.size(); i++)
-	{
-        if (clientSockets[i] == client->socket)
-        {
-            working = servers[i];
-            break;
-        }
-	}
     
     std::string *body;
     std::string *cl;
     if (client->header.isError)
     {
-        body = get_body(client, working);
+        body = get_body(client, client->directive);
         cl = convert_to_str((*body).length());
     }
     else if (client->cgi || client->isSession)
     {
         if (client->cgi)
-            body = handle_cgi(client, working, 0);
+            body = handle_cgi(client, client->directive, 0);
         else
-            body = handle_cgi(client, working, 1);
+            body = handle_cgi(client, client->directive, 1);
         cl = convert_to_str((*body).length());
         // client->header.statuscode = "HTTP/1.1 200 Forbidden";
     }
@@ -413,7 +406,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
         //         break;
         //     }
         // }
-        client->directive = servers[0];
+        client->directive = servers[client->serverIndex];
         // std::cout << "afin" << std::endl;
         // std::cout << client->directive.getListen() << std::endl;
         std::vector<Locations> locations = client->directive.getLocationsVec();

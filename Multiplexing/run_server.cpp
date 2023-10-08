@@ -138,6 +138,7 @@ void	runServer(Servers &servers)
 				newClient->address_length = sizeof(newClient->address);
 				newClient->socket = accept(serverSockets[i], (struct sockaddr*)&(newClient->address), &(newClient->address_length));
 				newClient->data = serversVec[i];
+				newClient->serverIndex = i;
 				if (newClient->socket == -1)
 					throw std::runtime_error("Error accepting connection");
 				ft_lstadd_back(&clients, newClient);
