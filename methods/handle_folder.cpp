@@ -21,7 +21,7 @@ void method_get::send_indexing(DIR *dir)
 	struct stat st;
     if (!fill.is_open())
     {
-        std::cout << "error in opening file" << std::endl;
+        // std::cout << "error in opening file" << std::endl;
         return ; 
     }
 	fill << "<html>\n<head>\n<title>Index of " << url << "</title>\n <style> body {background-color: Cyan; font-size: 14px}</style>\n</head>\n<body>\n<h1>Index of " << url << "</h1>\n<hr>\n<pre>\n";
@@ -53,7 +53,7 @@ void	method_get::folder_handling()
 	size_t	i = 0;	
 	while (i < this->index.size())
 	{
-		std::cout << "index : " << index[i] << std::endl;
+		// std::cout << "index : " << index[i] << std::endl;
 		std::string temp = path;
 		temp += index[i];
 		if (stat(temp.c_str() , &st) == 0)

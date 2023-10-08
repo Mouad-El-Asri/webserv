@@ -27,7 +27,7 @@ int	createListeningSocket(std::string &host, int &port)
 	if (addr_res != 0)
 		throw std::runtime_error("Failed to resolve hostname to IP address.");
 
-	std::cout << "Creating listening socket for server block listening in port : " << port << "..." << std::endl;
+	// std::cout << "Creating listening socket for server block listening in port : " << port << "..." << std::endl;
 	socket_listen = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
 	if (socket_listen == -1)
 		throw std::runtime_error("Failed to create socket for server block.");
@@ -35,18 +35,18 @@ int	createListeningSocket(std::string &host, int &port)
 	if (ret == -1)
 		throw std::runtime_error("Failed to set socket option for server block.");
 
-	std::cout << "Binding the socket to the address and the port..." << std::endl;
+	// std::cout << "Binding the socket to the address and the port..." << std::endl;
 	bind_res = bind(socket_listen, bind_address->ai_addr, bind_address->ai_addrlen);
 	if (bind_res == -1)
 		throw std::runtime_error("Bind failed: Unable to bind the socket to the specified host and port.");
 	freeaddrinfo(bind_address);
 
-	std::cout << "Listening on " << host << ":" << port << "..." << std::endl;
+	// std::cout << "Listening on " << host << ":" << port << "..." << std::endl;
 	listen_res = listen(socket_listen, 10);
 	if (listen_res == -1)
 		throw std::runtime_error("Listen failed: Unable to start listening for incoming connections.");
 
-	std::cout << "Listening socket created on port : " << port << "." << std::endl;
+	// std::cout << "Listening socket created on port : " << port << "." << std::endl;
 
 	return (socket_listen);
 }

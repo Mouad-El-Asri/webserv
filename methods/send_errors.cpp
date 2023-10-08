@@ -17,7 +17,7 @@
 
 void method_get::set_error_500()
 {
-	std::cout << "error 500" << std::endl;
+	// std::cout << "error 500" << std::endl;
 	std::ofstream file("./error500.html");
 	file << "<html><body><h1>500 Internal Server Error</h1></body></html>";
 	file.close();

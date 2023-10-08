@@ -1,32 +1,49 @@
 #include "multiplexing.hpp"
 
-void	lstadd_front(t_client_info **lst, t_client_info *newLst)
+// void	lstadd_front(t_client_info **lst, t_client_info *newLst)
+// {
+// 	t_client_info *top = *lst;
+// 	*lst = newLst;
+// 	newLst->next = top;
+// }
+
+void    ft_lstadd_back(t_client_info **lst, t_client_info *newclient)
 {
-	newLst->next = *lst;
-	*lst = newLst;
+    t_client_info    *temp;
+
+    temp = *lst;
+    if (!*lst)
+        *lst = newclient;
+    else
+    {
+        while (temp->next)
+            temp = temp->next;
+        temp->next = newclient;
+    }
 }
 
-t_client_info	*get_client(int s, t_client_info **clients)
-{
-	t_client_info *client = *clients;
+// t_client_info	*get_client(int s, t_client_info **clients)
+// {
+	// t_client_info *client = *clients;
 
-	while(client)
-	{
-		if (client->socket == s)
-			return (client);
-		client = client->next;
-	}
+	// while(client)
+	// {
+	// 	if (client->socket == s)
+	// 		return (client);
+	// 	client = client->next;
+	// }
+	// (void)s;
+	// (void)clients;
+	// t_client_info* newClient = new t_client_info;
 
-	t_client_info* newClient = new t_client_info;
+	// newClient->address_length = sizeof(newClient->address);
 
-	newClient->address_length = sizeof(newClient->address);
-	lstadd_front(clients, newClient);
-
-	return (newClient);
-}
+// 	return (newClient);
+// }
 
 void	drop_client(t_client_info *client, t_client_info **clients, fd_set &reads, fd_set &writes)
 {
+	std::cout << "CHARAF" << std::endl;
 	t_client_info **p = clients;
 	while(*p)
 	{

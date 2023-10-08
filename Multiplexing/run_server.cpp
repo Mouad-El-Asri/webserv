@@ -25,7 +25,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		std::string version = headers.substr(headers.find(" ", start) + 1, headers.find("\r\n") - headers.find(" ", start) - 1);
 		if (check_spaces(headers) != 2)
 		{
-			std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
+			// std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
@@ -33,7 +33,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		}
 		if (client->method != "GET" && client->method != "POST" && client->method != "DELETE")
 		{
-			std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
+			// std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 501 Not Implemented\r\n\r\n";
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
@@ -42,7 +42,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		}
 		if (version != "HTTP/1.1")
 		{
-			std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
+			// std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 505 HTTP Version Not Supported\r\n\r\n";
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
@@ -53,7 +53,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	{
 		client->times = 1; // for charaf hena rah khdemt b times dialk bach mayb9ach idkhol lfo9 meli tkkon get  method m3aha body
 		client->method = "GET";
-		std::cout << "\e[96mMethod : GET\e[0m" << std::endl;
+		// std::cout << "\e[96mMethod : GET\e[0m" << std::endl;
 		client->Info->socket = client->socket;
 		ft_get(*(client->data), client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
@@ -66,7 +66,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		ret = handle_Post(clientSockets, serversVec, client);
 		if (ret == 3)
 		{
-			std::cout << "it gave 3" << std::endl;
+			// std::cout << "it gave 3" << std::endl;
 			if (!FD_ISSET(client->socket, &writes))
 				FD_SET(client->socket, &writes);
 		}
@@ -78,7 +78,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	else if (client->method == "DELETE")
 	{
 		client->times = 1;
-		std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
+		// std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
 		client->method = "DELETE";
 		client->Info->socket = client->socket;
 		ft_delete(*(client->data) , client->url, *(client->Info));
@@ -87,7 +87,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else 
 	{
-		std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
+		// std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
 		client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
 		client->Info->status = 1;
 		return 1;
@@ -129,17 +129,22 @@ void	runServer(Servers &servers)
 
 	while (true)
 	{
+		t_client_info *newClient = NULL;
 		for (size_t i = 0; i < serverSockets.size(); i++)
 		{
 			if (FD_ISSET(serverSockets[i], &tempReads))
 			{
-				t_client_info *client = get_client(-1, &clients);
-				client->socket = accept(serverSockets[i], (struct sockaddr*)&(client->address), &(client->address_length));
-				client->data = &serversVec[i];
-				if (client->socket == -1)
+				// std::cout << serverSockets[i] << std::endl;
+				newClient = new t_client_info;
+				newClient->address_length = sizeof(newClient->address);
+				newClient->socket = accept(serverSockets[i], (struct sockaddr*)&(newClient->address), &(newClient->address_length));
+				newClient->data = &serversVec[i];
+				if (newClient->socket == -1)
 					throw std::runtime_error("Error accepting connection");
-				clientSockets.push_back(client->socket);
-				std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
+				ft_lstadd_back(&clients, newClient);
+				clientSockets.push_back(newClient->socket);
+				// FD_CLR(serverSockets[i],&tempReads);
+				// std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
 		}
 		wait_on_clients(maxSocket, &clients, reads, writes, tempReads, tempWrites);
@@ -149,29 +154,29 @@ void	runServer(Servers &servers)
 			t_client_info *next = client->next;
 			if (FD_ISSET(client->socket, &tempReads))
 			{
-				
-				client->received = recv(client->socket, client->request, 1024, 0);
+				client->received = recv(client->socket, client->request, 60000, 0);
 				client->all_received+=client->received;
 				if (client->received == -1)
 				{
-					std::cerr << "Error reading from client " << get_client_address(client) << "." << std::endl;
+					std::cout << "bgb" << std::endl;
+					// std::cerr << "Error reading from client " << get_client_address(client) << "." << std::endl;
 					drop_client(client, &clients, reads, writes);
 				}
 				else if (client->received == 0)
 				{
-					std::cerr << "Client socket " << client->socket << " closed." << std::endl;
+					std::cout << "bgb" << std::endl;
+					// std::cerr << "Client socket " << client->socket << " closed." << std::endl;
 					drop_client(client, &clients, reads, writes);
 				}
 				else
 				{
-                    std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
+                    // std::cout << "Received " << client->received << " bytes from client " << get_client_address(client) << "." << std::endl;
 					std::string header = client->request;
 					check_which_method(header, client, writes, clientSockets, serversVec);
 				}
 			}
 			client = next;
 		}
-
 		t_client_info *client_write = clients;
 		while(client_write)
 		{
@@ -180,7 +185,6 @@ void	runServer(Servers &servers)
 			{
 				if (client_write->method == "POST")
 				{
-					// std::cout << "---------------" << client_write->socket << std::endl;
 					response(client_write, clientSockets, serversVec);
 					drop_client(client_write, &clients, reads, writes);
 				}
@@ -190,7 +194,6 @@ void	runServer(Servers &servers)
 			client_write = next;
 		}
 	}
-	std::cout << "Closing sockets..." << std::endl;
 	for (size_t i = 0; i < serverSockets.size(); i++)
 		close(serverSockets[i]);
 }

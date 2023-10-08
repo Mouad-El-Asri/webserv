@@ -150,7 +150,7 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
         *ret = buf;
     }
     filename = "sessions"+filename;
-    std::cout << filename.c_str() << std::endl;
+    // std::cout << filename.c_str() << std::endl;
     std::ifstream file;
     file.open(filename.c_str());
     if (!file.is_open())
@@ -196,7 +196,7 @@ std::string* get_filename(std::string& req)
     // std::cout << req.find("filename=")+10 << "-----" << req.find(".mp4") << std::endl;
     int file_index = req.find("filename=");
     std::string *temp = new std::string();
-    *temp = req.substr(file_index+10, (req.find("Content-Type:", file_index) - 12)-(file_index+1));
+    *temp = req.substr(file_index+10, req.find("\"", file_index+10)-file_index-10);
     return temp;
 }
 std::string* generate_filename(std::string& ext)
@@ -419,8 +419,8 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
                 break;
             }
         }
-        delete client->header.path_dir;
     }
+        delete client->header.path_dir;
         if (client->working_location.getCgi()[".php"] != "")
         {
             client->cgi = true;
@@ -444,6 +444,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
+            delete client->header.filename;
             return 1;
         }
     return 2;
