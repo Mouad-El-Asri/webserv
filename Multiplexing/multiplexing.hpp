@@ -58,6 +58,7 @@ typedef struct s_client_info {
 	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), cgi(false) ,is_chunked_encoding(false), is_content_length(false), is_multipart(false), isCookieSet(false) , isSession(false),times(0), bl(0), next(NULL)
 	{
 		Info = new info;
+		times = 0;
         memset(&address, 0, sizeof(address));
 		memset(&request, 0, sizeof(request));
     }

@@ -51,6 +51,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	if (client->method == "GET")
 	{
+		client->times = 1; // for charaf hena rah khdemt b times dialk bach mayb9ach idkhol lfo9 meli tkkon get  method m3aha body
 		client->method = "GET";
 		std::cout << "\e[96mMethod : GET\e[0m" << std::endl;
 		client->Info->socket = client->socket;
@@ -82,6 +83,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else if (client->method == "DELETE")
 	{
+		client->times = 1;
 		std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
 		client->method = "DELETE";
 		client->Info->socket = client->socket;
@@ -189,10 +191,7 @@ void	runServer(Servers &servers)
 					drop_client(client_write, &clients, reads, writes);
 				}
 				else
-				{
-					printf("sdfsdfdsfsfdsf\n");
 					get_response(*(client_write->Info), client_write, &clients, reads, writes);
-				}
 			}
 			client_write = next;
 		}

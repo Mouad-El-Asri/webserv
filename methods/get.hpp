@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:56:52 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/07 06:40:57 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/08 03:38:39 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,15 +78,20 @@ class info{
 		file = NULL;
 		status = 1;
 		was_read = 0;
+		is_hinged = 0;
 	}
 	~info()
 	{
 		delete file;
 	}
 	int was_read;
+	int waitpid_ret;
+	int pipe;
+	int pid;
 	int socket;
 	int size;
 	int status;
+	int is_hinged;
 	std::string path;
 	std::string containte;
 	std::ifstream *file;
@@ -124,7 +129,7 @@ class method_get
 	void execute_cgi(std::string &path,std::string &arguments, std::string &run_it);
 	void set_extasion();
 	void get_element_from_location(int& checked_cgi, int& forbidden , int &size, int &max_lenght, int &auto_index);
-
+	void waiting_for_child( int *fd);
 };
 
 class ft_delete : public method_get

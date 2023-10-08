@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:56:24 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/07 08:43:47 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/08 03:56:56 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,25 +18,64 @@
 
 // hndling cgi
  
+void method_get::waiting_for_child( int *fd)
+{
+	char buf[1024];
+	std::string str;
+	std::ofstream temp(".file.txt");
+	while (read(fd[0], buf, 1024) > 0)
+	{
+		str = buf;
+		temp << str;
+	}
+	close(fd[0]);
+	temp.close();
+	infa.file = new std::ifstream(".file.txt");
+	if (infa.file->is_open() == false)
+	{
+		set_error_500();
+		throw std::exception();
+	}
+	struct stat st;
+	stat(".file.txt", &st);
+	infa.size = st.st_size;
+	infa.status = 1;
+	std::stringstream ss;
+	ss << infa.size;
+	infa.file = new std::ifstream(".file.txt");
+	infa.buffer_to_send = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + ss.str() + "\r\n\r\n";
+	infa.is_hinged = 0;	
+	std::cout << "\e[96mGET : \e[42mThe cgi is executed\e[0m" << std::endl;
+}
+ 
 
 void method_get::execute_cgi(std::string &path, std::string &arguments, std::string& run_it)
 {
 	int fd[2];
 	pid_t pid;
-	char *argv[3];
-	char *envp[5];
-	char buf[1024];
+	char *argv[4];
 	std::string str;
-
-
+	char *envp[5];
+	struct stat st;
+	if (stat(path.c_str(), &st) == -1)
+	{
+		set_error_404();
+		throw std::runtime_error("\e[91mError: The file is not found. response with 404\e[0m");
+	}
+	if (access(path.c_str(), R_OK) == -1)
+	{
+		set_error_403();
+		throw std::runtime_error("\e[91mError: The file is not readable. rxxxxesponse with 403\e[0m");
+	}
 	pipe(fd);
 	pid = fork();
 	if (pid == 0)
 	{
 		close(fd[0]);
 		dup2(fd[1], 1);
-		argv[0] = strdup(path.c_str());
-		argv[1] = NULL;
+		argv[0] = strdup(run_it.c_str());
+		argv[1] = strdup(path.c_str());
+		argv[2] = NULL;
 		envp[0] = strdup("REQUEST_METHOD=GET");
 		envp[1] = strdup("REDIRECT_STATUS=200");
 		str = "SCRIPT_NAME=" + path;
@@ -54,35 +93,29 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 	else
 	{
 		close(fd[1]);
-		close(fd[0]);
-		wait(NULL); // Elhazin I have an error here , it hungs on wait :(
-		std::ofstream temp(".file.txt");
-		while (read(fd[0], buf, 1024) > 0)
-		{
-			str = buf;
-			temp << buf;
-		}
-		close(fd[0]);
-		temp.close();
-		infa.file = new std::ifstream(".file.txt");
-		if (infa.file->is_open() == false)
+		infa.waitpid_ret = waitpid(pid, NULL, WNOHANG);
+		if (infa.waitpid_ret == -1)
 		{
 			set_error_500();
-			throw std::exception();
+			throw std::runtime_error("\e[91mError: The cgi is not executed. response with 500\e[0m");
 		}
-		struct stat st;
-		stat(".file.txt", &st);
-		infa.size = st.st_size;
-		infa.status = 1;
-		std::stringstream ss;
-		ss << infa.size;
-		path = ".file.txt";
-		file_handling();
+		else if (infa.waitpid_ret == pid)
+		{
+			waiting_for_child( fd);
+		}
+		else if (infa.waitpid_ret == 0)
+		{
+			infa.pipe = fd[0];
+			infa.pid = pid;
+			infa.is_hinged = 1;
+			//contuine the execution and handle the cgi in another function when the return of waitpid is noy zero and it is the pid of the child process
+		}
 	}
 }
 
 int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion, std::string arguments)
 {	
+	
 	if (path.find(".php") != std::string::npos)
 	{
 		if (path.find(".php") + 4 == path.find("?"))
@@ -109,7 +142,7 @@ int check_is_cgi(std::string& path, std::string& real_path, std::string& extansi
 			arguments = "QUERY_STRING=" + path.substr(path.find("?") + 1, path.size());
 			return 1;
 		}
-		else if (path.find_last_of(".py") + 3  == std::string::npos)
+		else if (path.size() >= 3 && path.substr(path.size() - 3) == ".py")
 		{
 			extansion = ".py";
 			real_path = path.substr(0, path.find_last_of(".py") + 3);
@@ -148,15 +181,16 @@ void method_get::check_location()
 				if (route[route.size() - 1] != '/')
 					route += "/";
 				path = route + url.substr(size, url.size());
-				std::cout << keep.getLocationsVec()[i].getCgi()[".php"] << std::endl;
 				if (keep.getLocationsVec()[i].getCgi().size() != 0)
 				{
+					std::cout << "cgi" << std::endl;
 					std::string ext;
 					if (check_is_cgi(path, let, ext, arguments)== 1)
 					{
-
-						if (keep.getLocationsVec()[i].getCgi()[ext] == "/bin/php" || keep.getLocationsVec()[i].getCgi()[ext] == "/bin/python3")
+						
+						if (keep.getLocationsVec()[i].getCgi()[ext] == "/usr/bin/php" || keep.getLocationsVec()[i].getCgi()[ext] == "/bin/python3")
 						{
+							
 							checked_cgi = 1;
 							cgi_script = keep.getLocationsVec()[i].getCgi()[ext];
 						}
@@ -218,7 +252,7 @@ void method_get::get_check_path()
 					else
 					{
 						file_handling();
-					throw 	std::runtime_error("\e[42mFile is requested , resopnse with file\e[0m");
+						throw 	std::runtime_error("\e[42mFile is requested , resopnse with file\e[0m");
 					}
 			}
 			else
@@ -287,9 +321,17 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 	int reading = clientes.file->gcount();
 	std::cout << "\e[96mGET : \e[42mSending data to the socket " << clientes.socket << "\e[0m" << std::endl;
 	int sending   = send(clientes.socket, bu, reading, 0) ;
-	if	(sending <= 0)
+	if	(sending < 0) // here it will check if the send function returns -1 , if it does it will close the socket and drop the client
 	{
 		std::cout << "\e[91mGet : \e[42mError : an error occured with the socket " << clientes.socket <<  ", while sending the file\e[0m" << std::endl;
+		if (clientes.file)
+			clientes.file->close();
+		drop_client(client_write, clients, reads, writes);
+		return ;
+	}
+	if (sending == 0)
+	{
+		std::cout << "\e[91mGet : \e[42mThe file is empty the send function returns 0  \e[0m" << std::endl;
 		if (clientes.file)
 			clientes.file->close();
 		drop_client(client_write, clients, reads, writes);
@@ -310,15 +352,39 @@ void send_header_in_response(info &clientes, t_client_info *client_write , t_cli
 	clientes.status = 0;	
 }
 
+void handle_hunged_cgi_client(info &clientes)
+{
+	struct stat st;
+	std::stringstream ss;
+	char bu[1025];
+	
+	std::ofstream out(".file.txt");
+	while (read(clientes.pipe, bu, 1024) > 0)
+		out << bu;
+	out.close();
+	stat(".file.txt", &st);
+	clientes.size = st.st_size;
+	ss << clientes.size;
+	clientes.file = new std::ifstream(".file.txt");
+	clientes.buffer_to_send = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + ss.str() + "\r\n\r\n";
+	std::cout << "\e[96mGET : \e[42mThe cgi is executed\e[0m" << std::endl;
+	clientes.is_hinged = 0;
+	clientes.status = 1;
+}
+
 void	get_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
-	if (clientes.status == 1)
-		send_header_in_response(clientes, client_write, clients, reads, writes);
-	else if (clientes.file && clientes.file->eof() == false)
+	if (clientes.is_hinged == 1)
 	{
-		send_file_in_response(clientes, client_write, clients, reads, writes);
+		if (clientes.waitpid_ret == clientes.pid)
+			handle_hunged_cgi_client(clientes);
+		return ;
 	}
-	else
+	if (clientes.status == 1) // here it will send the header onece and the clientes.status will be 0 , to not send it again
+		send_header_in_response(clientes, client_write, clients, reads, writes);
+	else if (clientes.file && clientes.file->eof() == false) // here it will send the file if the response contains a file, and the file is not finished yet 
+		send_file_in_response(clientes, client_write, clients, reads, writes);
+	else // here in case the file is finished or there is no file to send , it will close the socket and drop the client
 	{
 		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "\e[0m" << std::endl;
 		if (clientes.file)
