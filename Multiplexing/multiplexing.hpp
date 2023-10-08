@@ -47,7 +47,7 @@ typedef struct s_client_info {
 	bool					finished;
 	std::string				req_body;
 	Request					header;
-	// elhazin
+	Locations				working_location;
 	std::string				method;
 	std::string				url;
 	Directives				*data;

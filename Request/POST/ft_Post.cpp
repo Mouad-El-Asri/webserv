@@ -65,6 +65,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         body = new std::string("");
         cl = new std::string("0");
     }
+    delete client->header.path_p;
     res_total = client->header.statuscode + "\r\n"\
     "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
     "Server: 0rph1no/1.1\r\n" \
@@ -223,21 +224,6 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
 {
         std::ofstream img;
         const char* data;
-        if (client->times == 0)
-        {
-            if (client->req_body.find("multipart/form-data") != std::string::npos)
-                client->header.filename = get_filename(req_body);
-            else if (client->req_body.find("Content-Type") != std::string::npos)
-            {
-                std::string* ext = get_ext(req_body);
-                client->header.filename = generate_filename(*ext);
-                delete ext;
-            }
-            else
-            {
-                client->header.filename = new std::string();
-            }
-        }
         img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
         if (img.is_open())
         {
@@ -410,37 +396,37 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
     std::string temp = client->request;
     client->header.file_path = grab_path(temp);
     client->header.path_dir = grab_path_dir(*client->header.file_path);
+    delete client->header.file_path;
     if (client->times == 0)
     {
         client->header.path_p = grab_path(temp);
         if (*client->header.path_dir == "/sessions")
             client->isSession = true;
+        for (size_t i = 0; i < clientSockets.size(); i++)
+        {
+            if (clientSockets[i] == client->socket)
+            {
+                client->directive = servers[i];
+                break;
+            }
+        }
+        std::vector<Locations> locations = client->directive.getLocationsVec();
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (*client->header.path_dir == locations[i].getLocation())
+            {
+                client->working_location = locations[i];
+                break;
+            }
+        }
+        delete client->header.path_dir;
     }
-    Directives working;
-    for (size_t i = 0; i < clientSockets.size(); i++)
-	{
-        if (clientSockets[i] == client->socket)
-        {
-            working = servers[i];
-            break;
-        }
-	}
-    std::vector<Locations> locations = working.getLocationsVec();
-    Locations working_location;
-    for (size_t i = 0; i < locations.size(); i++)
-	{
-        if (*client->header.path_dir == locations[i].getLocation())
-        {
-            working_location = locations[i];
-            break;
-        }
-	}
-        if (working_location.getCgi()[".php"] != "")
+        if (client->working_location.getCgi()[".php"] != "")
         {
             client->cgi = true;
         }
         int ret;
-        if (is_Req_Err(working_location, client, working))
+        if (is_Req_Err(client->working_location, client, client->directive))
             return 3;
         ret = ft_my_Post(client);
 	    if (ret == 3)

@@ -68,17 +68,11 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		{
 			std::cout << "it gave 3" << std::endl;
 			if (!FD_ISSET(client->socket, &writes))
-			{
 				FD_SET(client->socket, &writes);
-			}
 		}
 		else if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
-		{
 			if (!FD_ISSET(client->socket, &writes))
 				FD_SET(client->socket, &writes);
-		}
-		delete client->header.file_path;
-    	delete client->header.path_dir;
 		return 0;
 	}
 	else if (client->method == "DELETE")
@@ -186,7 +180,7 @@ void	runServer(Servers &servers)
 			{
 				if (client_write->method == "POST")
 				{
-					std::cout << "---------------" << client_write->socket << std::endl;
+					// std::cout << "---------------" << client_write->socket << std::endl;
 					response(client_write, clientSockets, serversVec);
 					drop_client(client_write, &clients, reads, writes);
 				}
