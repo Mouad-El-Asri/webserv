@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:56:24 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/08 03:56:56 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/08 05:45:17 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ void method_get::waiting_for_child( int *fd)
 	infa.file = new std::ifstream(".file.txt");
 	infa.buffer_to_send = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + ss.str() + "\r\n\r\n";
 	infa.is_hinged = 0;	
-	std::cout << "\e[96mGET : \e[42mThe cgi is executed\e[0m" << std::endl;
+	std::runtime_error("\e[91mThe cgi is executed \e[0m");
 }
  
 
@@ -65,7 +65,7 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 	if (access(path.c_str(), R_OK) == -1)
 	{
 		set_error_403();
-		throw std::runtime_error("\e[91mError: The file is not readable. rxxxxesponse with 403\e[0m");
+		throw std::runtime_error("\e[91mError: The file is not readable. response with 403\e[0m");
 	}
 	pipe(fd);
 	pid = fork();
@@ -77,7 +77,6 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 		argv[1] = strdup(path.c_str());
 		argv[2] = NULL;
 		envp[0] = strdup("REQUEST_METHOD=GET");
-		envp[1] = strdup("REDIRECT_STATUS=200");
 		str = "SCRIPT_NAME=" + path;
 		envp[2] = strdup(str.c_str());
 		if (arguments != "")
@@ -108,6 +107,7 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 			infa.pipe = fd[0];
 			infa.pid = pid;
 			infa.is_hinged = 1;
+			std::runtime_error("\e[91m the cgi is hunged\e[0m");
 			//contuine the execution and handle the cgi in another function when the return of waitpid is noy zero and it is the pid of the child process
 		}
 	}
@@ -224,7 +224,6 @@ void method_get::check_location()
 	if (checked_cgi == 1)
 	{
 		execute_cgi(let,  arguments, cgi_script);
-		throw std::runtime_error("\e[91mThe cgi is executed\e[0m");
 	}
 	if (is_checked == 0)
 	{
@@ -367,7 +366,7 @@ void handle_hunged_cgi_client(info &clientes)
 	ss << clientes.size;
 	clientes.file = new std::ifstream(".file.txt");
 	clientes.buffer_to_send = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + ss.str() + "\r\n\r\n";
-	std::cout << "\e[96mGET : \e[42mThe cgi is executed\e[0m" << std::endl;
+	std::cout << "\e[96mGET : \e[42mThe cgi is executed after time\e[0m" << std::endl;
 	clientes.is_hinged = 0;
 	clientes.status = 1;
 }
@@ -376,6 +375,7 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 {
 	if (clientes.is_hinged == 1)
 	{
+		clientes.waitpid_ret = waitpid(clientes.pid, NULL, WNOHANG);
 		if (clientes.waitpid_ret == clientes.pid)
 			handle_hunged_cgi_client(clientes);
 		return ;
