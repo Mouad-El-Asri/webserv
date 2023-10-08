@@ -65,7 +65,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         body = new std::string("");
         cl = new std::string("0");
     }
-    delete client->header.path_p;
+    // delete client->header.path_p;
     res_total = client->header.statuscode + "\r\n"\
     "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
     "Server: 0rph1no/1.1\r\n" \
@@ -83,29 +83,29 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     delete body;
 }
 
-std::string* grab_path(std::string& req)
+std::string grab_path(std::string& req)
 {  
     //GET /HAMID HTTP/1.1
-    std::string *ret = new std::string();
+    std::string ret;
     req = req.substr(0, req.find("\r\n"));
-    *ret = req.substr(req.find(" ")+1, (req.find("HTTP/1.1") - 6));
+    ret = req.substr(req.find(" ")+1, (req.find("HTTP/1.1") - 6));
     return ret;
 }
-std::string* grab_path_dir(std::string& req)
+std::string grab_path_dir(std::string& req)
 {  
-    std::string *ret = new std::string();
+    std::string ret;
     if (req == "/")
-        *ret = req;
+        ret = req;
     else
     {
         size_t found = req.rfind("/");
         if (found != std::string::npos && found != 0)
         {
-            *ret = req.substr(0, req.rfind("/"));
+            ret = req.substr(0, req.rfind("/"));
         }
         else
         {
-            *ret = req;
+            ret = req;
         }
     }
     return ret;
@@ -114,7 +114,7 @@ std::string* grab_path_dir(std::string& req)
 std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
 {
     std::string *ret = new std::string();
-    std::string filename = client->header.path_p->substr(client->header.path_p->rfind("/"));
+    std::string filename = client->header.path_p.substr(client->header.path_p.rfind("/"));
     if (flag == 0)
     {
         (void)working;
@@ -191,24 +191,24 @@ ssize_t get_length(std::string& req)
     }
     return -1;
 }
-std::string* get_filename(std::string& req)
+std::string get_filename(std::string& req)
 {
     // std::cout << req.find("filename=")+10 << "-----" << req.find(".mp4") << std::endl;
     int file_index = req.find("filename=");
-    std::string *temp = new std::string();
-    *temp = req.substr(file_index+10, req.find("\"", file_index+10)-file_index-10);
+    std::string temp;
+    temp = req.substr(file_index+10, req.find("\"", file_index+10)-file_index-10);
     return temp;
 }
-std::string* generate_filename(std::string& ext)
+std::string generate_filename(std::string& ext)
 {
-    std::string *result = new std::string();
+    std::string result;
     char alpha[26] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g',
                           'h', 'i', 'j', 'k', 'l', 'm', 'n',
                           'o', 'p', 'q', 'r', 's', 't', 'u',
                           'v', 'w', 'x', 'y', 'z' };
     for (int i = 0; i<26; i++)
-        *result = *result + alpha[rand() % 26];
-    *result = *result+"."+ext;
+        result = result + alpha[rand() % 26];
+    result = result+"."+ext;
     return result;
 }
 std::string* get_ext(std::string& req)
@@ -224,7 +224,7 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
 {
         std::ofstream img;
         const char* data;
-        img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
+        img.open(client->header.filename.c_str(), std::ios::binary | std::ios::app);
         if (img.is_open())
         {
 
@@ -242,7 +242,7 @@ void handle_chunked_encoding(t_client_info* client, const std::string& chunked_d
     std::ofstream img;
     std::string chunk_size_str;
     size_t chunk_size;
-    img.open(client->header.filename->c_str(), std::ios::binary | std::ios::app);
+    img.open(client->header.filename.c_str(), std::ios::binary | std::ios::app);
     size_t pos = 0;
     while (pos < chunked_data.length()) {
         size_t chunk_size_end = chunked_data.find("\r\n", pos);
@@ -338,6 +338,7 @@ int ft_my_Post(t_client_info *client)
 bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
 {
     std::string temp = client->request;
+    std::cout << client->socket << " ---- " << loc.getLocation() << std::endl;
     if (client->times == 0)
     {
         if (loc.getLocation() == "")
@@ -381,6 +382,7 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
     {
         if (client->all_received > (size_t)working.getMaxBodySizeInBytes())
         {
+            std::cout << client->all_received << " ----- "<< (size_t)working.getMaxBodySizeInBytes() << std::endl;
             client->times++;
             client->header.isError = true;
             client->header.status = "413";
@@ -393,34 +395,39 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
 
 int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &servers, t_client_info *client)
 {
-    std::string temp = client->request;
-    client->header.file_path = grab_path(temp);
-    client->header.path_dir = grab_path_dir(*client->header.file_path);
-    delete client->header.file_path;
+    (void)clientSockets;
     if (client->times == 0)
     {
+        std::string temp = client->request;
+        client->header.file_path = grab_path(temp);
+        client->header.path_dir = grab_path_dir(client->header.file_path);
         client->header.path_p = grab_path(temp);
-        if (*client->header.path_dir == "/sessions")
+        if (client->header.path_dir == "/sessions")
             client->isSession = true;
-        for (size_t i = 0; i < clientSockets.size(); i++)
-        {
-            if (clientSockets[i] == client->socket)
-            {
-                client->directive = servers[i];
-                break;
-            }
-        }
+        // for (size_t i = 0; i < clientSockets.size(); i++)
+        // {
+        //     if (clientSockets[i] == client->socket)
+        //     {
+        //         std::cout << servers[i].getRoot() << " ---- " << i<<  std::endl;
+        //         client->directive = servers[i];
+        //         break;
+        //     }
+        // }
+        client->directive = servers[0];
+        // std::cout << "afin" << std::endl;
+        // std::cout << client->directive.getListen() << std::endl;
         std::vector<Locations> locations = client->directive.getLocationsVec();
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (*client->header.path_dir == locations[i].getLocation())
+            // std::cout << "hamid" << std::endl;
+            if (client->header.path_dir == locations[i].getLocation())
             {
+                // std::cout << client->header.path_dir << std::endl;
                 client->working_location = locations[i];
                 break;
             }
         }
     }
-        delete client->header.path_dir;
         if (client->working_location.getCgi()[".php"] != "")
         {
             client->cgi = true;
@@ -432,7 +439,6 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
 	    if (ret == 3)
         {
 		    handle_chunked_encoding(client, client->req_body);
-            delete client->header.filename;
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
@@ -444,7 +450,6 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             client->header.isError = false;
             client->header.status = "200";
             client->header.statuscode = "HTTP/1.1 200 OK";
-            delete client->header.filename;
             return 1;
         }
     return 2;

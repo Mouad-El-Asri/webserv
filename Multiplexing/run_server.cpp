@@ -55,7 +55,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		client->method = "GET";
 		// std::cout << "\e[96mMethod : GET\e[0m" << std::endl;
 		client->Info->socket = client->socket;
-		ft_get(*(client->data), client->url, *(client->Info));
+		ft_get(client->data, client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
 			FD_SET(client->socket, &writes);
 		return 0;
@@ -81,7 +81,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		// std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
 		client->method = "DELETE";
 		client->Info->socket = client->socket;
-		ft_delete(*(client->data) , client->url, *(client->Info));
+		ft_delete(client->data, client->url, *(client->Info));
 		FD_SET(client->socket, &writes);
 		return  0;
 	}
@@ -129,25 +129,22 @@ void	runServer(Servers &servers)
 
 	while (true)
 	{
-		t_client_info *newClient = NULL;
+		wait_on_clients(maxSocket, &clients, reads, writes, tempReads, tempWrites);
 		for (size_t i = 0; i < serverSockets.size(); i++)
 		{
 			if (FD_ISSET(serverSockets[i], &tempReads))
 			{
-				// std::cout << serverSockets[i] << std::endl;
-				newClient = new t_client_info;
+				t_client_info *newClient = new t_client_info;
 				newClient->address_length = sizeof(newClient->address);
 				newClient->socket = accept(serverSockets[i], (struct sockaddr*)&(newClient->address), &(newClient->address_length));
-				newClient->data = &serversVec[i];
+				newClient->data = serversVec[i];
 				if (newClient->socket == -1)
 					throw std::runtime_error("Error accepting connection");
 				ft_lstadd_back(&clients, newClient);
 				clientSockets.push_back(newClient->socket);
-				// FD_CLR(serverSockets[i],&tempReads);
 				// std::cout << "New connection from " << get_client_address(client) << "." << std::endl;
 			}
 		}
-		wait_on_clients(maxSocket, &clients, reads, writes, tempReads, tempWrites);
 		t_client_info *client = clients;
 		while(client)
 		{

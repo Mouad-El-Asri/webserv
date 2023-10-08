@@ -18,11 +18,11 @@ public:
 	bool		isError;
 	std::string	status;
     std::string fst_line;
-    std::string *method;
-    std::string *path_dir;
-	std::string *path_p;
-    std::string *file_path;
-	std::string *filename;
+    std::string method;
+    std::string path_dir;
+	std::string path_p;
+    std::string file_path;
+	std::string filename;
 	std::string statuscode;
     Request() : isError(false){};
     ~Request();
@@ -50,7 +50,7 @@ typedef struct s_client_info {
 	Locations				working_location;
 	std::string				method;
 	std::string				url;
-	Directives				*data;
+	Directives				data;
 	info* 					Info;
 	Directives				directive;
 	s_client_info			*next;
