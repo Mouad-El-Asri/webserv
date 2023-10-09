@@ -179,8 +179,8 @@ void method_get::check_location()
 				this->auto_index = keep.getLocationsVec()[i].getAutoIndex();
 				this->index = keep.getLocationsVec()[i].getIndex();
 				this->route = keep.getLocationsVec()[i].getRoot();
-				if (route[route.size() - 1] != '/')
-					route += "/";
+				// if (route[route.size() - 1] != '/')
+				// 	route += "/";
 				path = route + url.substr(size, url.size());
 				if (keep.getLocationsVec()[i].getCgi().size() != 0)
 				{
