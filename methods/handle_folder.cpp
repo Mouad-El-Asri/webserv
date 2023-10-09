@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:57:04 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/07 03:57:05 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/09 06:32:24 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,17 @@ void method_get::send_indexing(DIR *dir)
     }
 	fill << "<html>\n<head>\n<title>Index of " << url << "</title>\n <style> body {background-color: Cyan; font-size: 14px}</style>\n</head>\n<body>\n<h1>Index of " << url << "</h1>\n<hr>\n<pre>\n";
  	while ((dp = readdir(dir)) != NULL)
-        fill << "<a href=\"" << url + dp->d_name << "\">" << dp->d_name << "</a>\n";
+    {
+		std::string temp = dp->d_name;
+		if (temp == "." || temp == "..")
+			continue;
+		if ( dp->d_type == DT_DIR)
+			fill << "<a href=\"" << temp << "/\">" << temp << "/</a>\n";
+		else
+			fill << "<a href=\"" << temp << "\">" << temp << "</a>\n";
+		
+			
+	}
 	fill << "</pre><hr>\n</body>\n</html>\n";
 	closedir(dir);
 	fill.close();
@@ -53,7 +63,6 @@ void	method_get::folder_handling()
 	size_t	i = 0;	
 	while (i < this->index.size())
 	{
-		// std::cout << "index : " << index[i] << std::endl;
 		std::string temp = path;
 		temp += index[i];
 		if (stat(temp.c_str() , &st) == 0)

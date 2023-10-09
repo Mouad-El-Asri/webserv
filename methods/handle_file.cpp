@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:56:59 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/07 03:57:56 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/09 06:17:13 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ void method_get::file_handling()
 	size_t i = path.find_last_of(".");
 	if (i == std::string::npos)
 		ext = ".html";
-	ext =  path.substr(i, path.size());
+	else
+		ext =  path.substr(i, path.size());
 	std::string extansion =  extansion_handling[ext];
 	if (extansion == "")
 		extansion = extansion_handling[".html"];

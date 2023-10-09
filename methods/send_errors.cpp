@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:57:31 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/07 03:57:32 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/09 06:28:35 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,8 @@ void	method_get::set_error_404()
 	struct stat st;
 	std::stringstream	ss;
 	std::string			ext;
+	std::cout << "url : " << url << std::endl;
+	std::cout << "path : " << path << std::endl;
 	this ->path  = erros_page["404"];
 	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
 	if (!infa.file->is_open())

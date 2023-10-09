@@ -43,7 +43,6 @@ void    ft_lstadd_back(t_client_info **lst, t_client_info *newclient)
 
 void	drop_client(t_client_info *client, t_client_info **clients, fd_set &reads, fd_set &writes)
 {
-	std::cout << "CHARAF" << std::endl;
 	t_client_info **p = clients;
 	while(*p)
 	{

@@ -6,7 +6,7 @@
 /*   By: abouzanb <abouzanb@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/07 03:56:52 by abouzanb          #+#    #+#             */
-/*   Updated: 2023/10/08 03:38:39 by abouzanb         ###   ########.fr       */
+/*   Updated: 2023/10/09 06:44:16 by abouzanb         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,14 +121,16 @@ class method_get
 	void folder_handling();
 	void file_handling();
 	void handle_auto_index();
+	// error handling
 	void set_error_404();
 	void set_error_500();
 	void set_error_403();
 	void check_location();
 	void send_indexing(DIR *dir);
-	void execute_cgi(std::string &path,std::string &arguments, std::string &run_it);
 	void set_extasion();
 	void get_element_from_location(int& checked_cgi, int& forbidden , int &size, int &max_lenght, int &auto_index);
+	//cgi staff 
+	void execute_cgi(std::string &path,std::string &arguments, std::string &run_it);
 	void waiting_for_child( int *fd);
 };
 
@@ -143,6 +145,7 @@ class ft_delete : public method_get
     void remove_file(std::string path);
     void remove_folder(std::string path);
 };
+
 void ft_get(Directives &data, std::string url,  info &socket);
 
 

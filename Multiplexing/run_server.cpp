@@ -25,7 +25,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		std::string version = headers.substr(headers.find(" ", start) + 1, headers.find("\r\n") - headers.find(" ", start) - 1);
 		if (check_spaces(headers) != 2)
 		{
-			// std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
+			std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
@@ -33,7 +33,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		}
 		if (client->method != "GET" && client->method != "POST" && client->method != "DELETE")
 		{
-			// std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
+			std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 501 Not Implemented\r\n\r\n";
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
@@ -42,7 +42,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		}
 		if (version != "HTTP/1.1")
 		{
-			// std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
+			std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
 			client->Info->buffer_to_send = "HTTP/1.1 505 HTTP Version Not Supported\r\n\r\n";
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
@@ -51,9 +51,8 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	if (client->method == "GET")
 	{
-		client->times = 1; // for charaf hena rah khdemt b times dialk bach mayb9ach idkhol lfo9 meli tkkon get  method m3aha body
+		client->times = 1;
 		client->method = "GET";
-		// std::cout << "\e[96mMethod : GET\e[0m" << std::endl;
 		client->Info->socket = client->socket;
 		ft_get(client->data, client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
@@ -78,7 +77,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	else if (client->method == "DELETE")
 	{
 		client->times = 1;
-		// std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
+		std::cout << "\e[96mMethod : DELETE\e[0m" << std::endl;
 		client->method = "DELETE";
 		client->Info->socket = client->socket;
 		ft_delete(client->data, client->url, *(client->Info));
@@ -87,7 +86,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else 
 	{
-		// std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
+		std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
 		client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
 		client->Info->status = 1;
 		return 1;
