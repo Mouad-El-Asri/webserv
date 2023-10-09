@@ -1,0 +1,5 @@
+ba9i khasnei nparsi l headers ta3 cgi 
+ba9i khasnei ntchecki delete bach tremovi folder 3amer 
+ba9i khaseni nhandli error default_error_pages and code status
+ba9i khaseni nhandli indexing file 
+ba9i khaseni nhandli 
