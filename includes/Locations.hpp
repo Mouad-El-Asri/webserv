@@ -17,6 +17,7 @@ class Locations
 		bool								cgiAllowed;
 		std::map<std::string, std::string>	cgi;
 		std::string							uploadStore;
+		bool								uploadStoreIsSet;
 
 	public:
 		Locations();
@@ -34,6 +35,7 @@ class Locations
 		bool								getCgiAllowed() const;
 		std::map<std::string, std::string>	getCgi() const;
 		std::string							getUploadStore() const;
+		bool								getUploadStoreIsSet() const;
 
 		void	setLocation(const std::string& location);
 		void	setRoot(const std::string& root);
@@ -44,6 +46,7 @@ class Locations
 		void	setCgiAllowed(const bool& cgiAllowed);
 		void	setCgi(const std::string& key, const std::string& value);
 		void	setUploadStore(const std::string& uploadStore);
+		void	setUploadStoreIsSet(const bool& uploadStoreIsSet);
 };
 
 #endif

@@ -13,6 +13,7 @@ Locations::Locations()
 	this->cgiAllowed = false;
 	this->cgi.clear();
 	this->uploadStore = "./uploads";
+	this->uploadStoreIsSet = false;
 }
 
 Locations::Locations(const Locations& other)
@@ -33,6 +34,7 @@ Locations&	Locations::operator=(const Locations &other)
 		this->cgiAllowed = other.cgiAllowed;
 		this->cgi = other.cgi;
 		this->uploadStore = other.uploadStore;
+		this->uploadStoreIsSet = other.uploadStoreIsSet;
 	}
 	return (*this);
 }
@@ -49,7 +51,8 @@ void	Locations::clearLocation()
 	this->Return = "";
 	this->cgiAllowed = false;
 	this->cgi.clear();
-	this->uploadStore = "";
+	this->uploadStore = "./uploads";
+	this->uploadStoreIsSet = false;
 }
 
 std::string	Locations::getLocation() const
@@ -97,6 +100,11 @@ std::string	Locations::getUploadStore() const
 	return (this->uploadStore);
 }
 
+bool	Locations::getUploadStoreIsSet() const
+{
+	return (this->uploadStoreIsSet);
+}
+
 void	Locations::setLocation(const std::string& location)
 {
 	this->location = location;
@@ -140,4 +148,9 @@ void	Locations::setCgi(const std::string& key, const std::string& value)
 void	Locations::setUploadStore(const std::string& uploadStore)
 {
 	this->uploadStore = uploadStore;
+}
+
+void	Locations::setUploadStoreIsSet(const bool& uploadStoreIsSet)
+{
+	this->uploadStoreIsSet = uploadStoreIsSet;
 }
