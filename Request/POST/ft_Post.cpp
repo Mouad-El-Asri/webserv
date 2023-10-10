@@ -217,7 +217,9 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
 {
         std::ofstream img;
         const char* data;
-        img.open(client->header.filename.c_str(), std::ios::binary | std::ios::app);
+        std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
+        std::cout << upload << std::endl;
+        img.open(upload.c_str(), std::ios::binary | std::ios::app);
         if (img.is_open())
         {
 
@@ -235,7 +237,8 @@ void handle_chunked_encoding(t_client_info* client, const std::string& chunked_d
     std::ofstream img;
     std::string chunk_size_str;
     size_t chunk_size;
-    img.open(client->header.filename.c_str(), std::ios::binary | std::ios::app);
+    std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
+    img.open(upload.c_str(), std::ios::binary | std::ios::app);
     size_t pos = 0;
     while (pos < chunked_data.length()) {
         size_t chunk_size_end = chunked_data.find("\r\n", pos);
@@ -397,25 +400,12 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
         client->header.path_p = grab_path(temp);
         if (client->header.path_dir == "/sessions")
             client->isSession = true;
-        // for (size_t i = 0; i < clientSockets.size(); i++)
-        // {
-        //     if (clientSockets[i] == client->socket)
-        //     {
-        //         std::cout << servers[i].getRoot() << " ---- " << i<<  std::endl;
-        //         client->directive = servers[i];
-        //         break;
-        //     }
-        // }
         client->directive = servers[client->serverIndex];
-        // std::cout << "afin" << std::endl;
-        // std::cout << client->directive.getListen() << std::endl;
         std::vector<Locations> locations = client->directive.getLocationsVec();
         for (size_t i = 0; i < locations.size(); i++)
         {
-            // std::cout << "hamid" << std::endl;
             if (client->header.path_dir == locations[i].getLocation())
             {
-                // std::cout << client->header.path_dir << std::endl;
                 client->working_location = locations[i];
                 break;
             }

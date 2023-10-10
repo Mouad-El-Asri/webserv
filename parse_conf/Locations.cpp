@@ -12,7 +12,7 @@ Locations::Locations()
 	this->Return = "";
 	this->cgiAllowed = false;
 	this->cgi.clear();
-	this->uploadStore = "../uploads";
+	this->uploadStore = "./uploads";
 }
 
 Locations::Locations(const Locations& other)

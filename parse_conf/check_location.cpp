@@ -161,7 +161,7 @@ void	checkLocationUploadStore(Locations &location, std::istringstream &iss)
 {
 	std::string path;
 
-	if (location.getUploadStore() != "../uploads")
+	if (location.getUploadStore() != "./uploads")
 		throw std::runtime_error("The location upload_store directive already exists.");
 	std::getline(iss, path);
 	if (path.empty() || isOnlyWhitespaces(path))
