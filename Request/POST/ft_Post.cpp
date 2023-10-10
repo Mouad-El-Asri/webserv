@@ -50,7 +50,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
             body = handle_cgi(client, client->directive, 0);
         else
             body = handle_cgi(client, client->directive, 1);
-        cl = convert_to_str((*body).length());
+            cl = convert_to_str((*body).length());
         // client->header.statuscode = "HTTP/1.1 200 Forbidden";
     }
     else
@@ -142,18 +142,18 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
         read(fd[0], buf, 1023);
         *ret = buf;
     }
-    filename = "sessions"+filename;
-    // std::cout << filename.c_str() << std::endl;
-    std::ifstream file;
-    file.open(filename.c_str());
-    if (!file.is_open())
-        std::cout << "Error, could not open the file" << std::endl;
-    std::string line;
-    while(std::getline(file,line))
-    {
-        *ret+=line;
-        *ret+="\r\n";
-    }
+    // filename = "sessions"+filename;
+    // // std::cout << filename.c_str() << std::endl;
+    // std::ifstream file;
+    // file.open(filename.c_str());
+    // if (!file.is_open())
+    //     std::cout << "Error, could not open the file" << std::endl;
+    // std::string line;
+    // while(std::getline(file,line))
+    // {
+    //     *ret+=line;
+    //     *ret+="\r\n";
+    // }
     return ret;
 }
 
@@ -218,7 +218,8 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
         std::ofstream img;
         const char* data;
         std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
-        // std::cout << upload << std::endl;
+        std::cout << client->working_location.getUploadStore() << std::endl;
+        std::cout << upload << std::endl;
         img.open(upload.c_str(), std::ios::binary | std::ios::app);
         if (img.is_open())
         {
