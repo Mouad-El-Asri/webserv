@@ -155,13 +155,13 @@ void	runServer(Servers &servers)
 				client->all_received+=client->received;
 				if (client->received == -1)
 				{
-					std::cout << "bgb" << std::endl;
+					// std::cout << "bgb" << std::endl;
 					// std::cerr << "Error reading from client " << get_client_address(client) << "." << std::endl;
 					drop_client(client, &clients, reads, writes);
 				}
 				else if (client->received == 0)
 				{
-					std::cout << "bgb" << std::endl;
+					// std::cout << "bgb" << std::endl;
 					// std::cerr << "Client socket " << client->socket << " closed." << std::endl;
 					drop_client(client, &clients, reads, writes);
 				}

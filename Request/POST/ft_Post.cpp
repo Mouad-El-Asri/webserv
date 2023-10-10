@@ -218,7 +218,7 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
         std::ofstream img;
         const char* data;
         std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
-        std::cout << upload << std::endl;
+        // std::cout << upload << std::endl;
         img.open(upload.c_str(), std::ios::binary | std::ios::app);
         if (img.is_open())
         {
@@ -334,7 +334,7 @@ int ft_my_Post(t_client_info *client)
 bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
 {
     std::string temp = client->request;
-    std::cout << client->socket << " ---- " << loc.getLocation() << std::endl;
+    // std::cout << client->socket << " ---- " << loc.getLocation() << std::endl;
     if (client->times == 0)
     {
         if (loc.getLocation() == "")
@@ -378,7 +378,7 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
     {
         if (client->all_received > (size_t)working.getMaxBodySizeInBytes())
         {
-            std::cout << client->all_received << " ----- "<< (size_t)working.getMaxBodySizeInBytes() << std::endl;
+            // std::cout << client->all_received << " ----- "<< (size_t)working.getMaxBodySizeInBytes() << std::endl;
             client->times++;
             client->header.isError = true;
             client->header.status = "413";
@@ -411,7 +411,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             }
         }
     }
-        if (client->working_location.getCgi()[".php"] != "")
+        if (client->working_location.getCgi()[".php"] != "" && client->header.file_path.find(".php") != std::string::npos)
         {
             client->cgi = true;
         }
