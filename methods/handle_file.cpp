@@ -30,7 +30,7 @@ void method_get::file_handling()
 		ext =  path.substr(i, path.size());
 	std::string extansion =  extansion_handling[ext];
 	if (extansion == "")
-		extansion = extansion_handling[".html"];
+		extansion = extansion_handling["def"];
 	ss << this->size;
 	extansion += ss.str();
 	extansion += "\r\n";
