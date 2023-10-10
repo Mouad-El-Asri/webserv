@@ -24,6 +24,9 @@ public:
     std::string file_path;
 	std::string filename;
 	std::string statuscode;
+	std::string	content_type;
+	std::string content_length;
+
     Request() : isError(false){};
     ~Request();
 };
@@ -33,6 +36,7 @@ typedef struct s_client_info {
 	struct sockaddr_storage	address;
 	int						socket;
 	char					request[60001];
+	std::string				fst_req;
 	ssize_t					received;
 	size_t					all_received;
 	bool					cgi;
