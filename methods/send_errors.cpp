@@ -17,17 +17,15 @@
 
 void method_get::set_error_500()
 {
-	// std::cout << "error 500" << std::endl;
-	std::ofstream file("./error500.html");
-	file << "<html><body><h1>500 Internal Server Error</h1></body></html>";
-	file.close();
-	this ->path  = "./error500.html";
-	struct stat st;
-	stat(path.c_str() , &st);
 	std::stringstream ss ;
-	ss << st.st_size;
-	infa.buffer_to_send = extansion_handling["500"] + ss.str() + "\r\n\r\n";
-	infa.file = new std::ifstream(path.c_str(),  std::ios::binary);
+	std::string ext;
+	std::string body = "<head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>Elhazin server</center></body></html>";
+	infa.buffer_to_send = extansion_handling["500"];
+	ss << body.size();
+	infa.buffer_to_send += ss.str();
+	infa.buffer_to_send += "\r\n\r\n";
+	infa.buffer_to_send += body;
+	infa.status = 1;
 }
 
 void	method_get::set_error_403()
@@ -78,4 +76,17 @@ void	method_get::set_error_404()
 	ext += "\r\n\r\n";
 	this->infa.buffer_to_send = ext;
 	this->infa.status = 1;
+}
+
+
+void method_get::set_not_allowed()
+{
+	std::stringstream ss;
+	std::string body = "<head><title>405 Method Not Allowed</title></head><body><center><h1>405 Method Not Allowed</h1></center><hr></body></html>";
+	infa.buffer_to_send  = extansion_handling["405"];
+	ss << body.size();
+	infa.buffer_to_send += ss.str();
+	infa.buffer_to_send += "\r\n\r\n";
+	infa.buffer_to_send += body;
+	infa.status = 1;
 }

@@ -14,6 +14,17 @@ int check_spaces(std::string &str)
 	return (spaces);
 }
 
+int check_content_lenght(std::string &headers, info *client)
+{
+	int start = headers.find("Content-Length: ") + 16;
+	int end = headers.find("\r\n", start);
+	std::string content_length = headers.substr(start, end - start);
+	if (content_length == "")
+		return 0;
+	client->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
+	client->status = 1;
+	return 1;
+}
 int  check_which_method(std::string& headers, t_client_info *client, fd_set &writes, std::vector<int> &clientSockets, std::vector<Directives> &serversVec)
 {
 	int ret;
@@ -54,6 +65,8 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		client->times = 1;
 		client->method = "GET";
 		client->Info->socket = client->socket;
+		if (check_content_lenght(headers, client->Info) == 1)
+			return 0;
 		ft_get(client->data, client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
 			FD_SET(client->socket, &writes);
