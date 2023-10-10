@@ -125,6 +125,7 @@ class method_get
 	void set_error_404();
 	void set_error_500();
 	void set_error_403();
+	void set_not_allowed();
 	void check_location();
 	void send_indexing(DIR *dir);
 	void set_extasion();

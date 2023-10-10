@@ -38,6 +38,7 @@ void ft_delete::remove_them(std::string path)
 	struct stat st;
 	DIR *dir;
 	struct dirent *entry;
+	std::cerr << "path : " << path << std::endl;
 	if (!(dir = opendir(path.c_str())))
 		return ;
 	while ((entry = readdir(dir)) != NULL)
@@ -47,19 +48,22 @@ void ft_delete::remove_them(std::string path)
 			continue;
 		std::string full_path = path + "/" + name;
 		if (stat(full_path.c_str(), &st) == -1)
+		{
 			continue;
+		}
 		if (S_ISDIR(st.st_mode))
 		{
 			if (access(full_path.c_str(), F_OK) == -1)
 				continue;
 			remove_them(full_path);
-			std::remove(full_path.c_str());
 		}
 		else
-			remove_file(full_path);
+		{
+			std::remove(full_path.c_str());
+		}
 	}
-	closedir(dir);
 	std::remove(path.c_str());
+	closedir(dir);
 }
 
 void ft_delete::remove_file(std::string path)
@@ -71,11 +75,7 @@ void ft_delete::remove_file(std::string path)
 		size = 0;
 		throw std::runtime_error("\e[42mFile is deleted\e[0m");
 	}
-	else if (errno == EACCES)
-	{
-		set_error_403();
-	   throw std::runtime_error("\e[102mError: The file is not writable. response with 403\e[0m");
-	}
+
 }
 
 void ft_delete::check_stat()
@@ -83,7 +83,7 @@ void ft_delete::check_stat()
 	struct stat st;
 	if (stat(path.c_str() , &st) == 0)
 	{
-		if (access(path.c_str(), W_OK | X_OK) == -1)
+		if (access(path.c_str(), W_OK) == -1)
 		{
 			set_error_403();
 			throw std::runtime_error("\e[102mError: The file is not writable. response with 403\e[0m");

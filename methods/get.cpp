@@ -23,8 +23,11 @@ void method_get::waiting_for_child( int *fd)
 	char buf[1024];
 	std::string str;
 	std::ofstream temp(".file.txt");
-	while (read(fd[0], buf, 1024) > 0)
+	int red = 1;
+	while ( red > 0)
 	{
+		red = read(fd[0], buf, 1024);	
+		buf[red] = '\0';
 		str = buf;
 		temp << str;
 	}
@@ -92,7 +95,13 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 	else
 	{
 		close(fd[1]);
-		infa.waitpid_ret = waitpid(pid, NULL, WNOHANG);
+		int status ;
+		infa.waitpid_ret = waitpid(pid, &status, WNOHANG);
+		if (WEXITSTATUS(status))
+		{
+			set_error_500();
+			throw std::runtime_error("\e[91mError: The cgi is not executed. response with 500\e[0m");
+		}
 		if (infa.waitpid_ret == -1)
 		{
 			set_error_500();
@@ -221,7 +230,7 @@ void method_get::check_location()
 
 	if (forbidden == 1)
 	{
-		set_error_403();
+		set_not_allowed();
 		throw std::runtime_error("\e[91mError: The method is not allowed. response with 403\e[0m");
 	}
 	if (redirection == 1)
@@ -290,6 +299,9 @@ void method_get::set_extasion()
 	extansion_handling[".txt"] = moth + "Content-Type: text/plain\nContent-Length: ";
 	extansion_handling["404"] = "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: ";
 	extansion_handling["403"] = "HTTP/1.1 403 Forbidden\nContent-Type: text/html\nContent-Length: ";
+	extansion_handling["500"] = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length: ";
+	extansion_handling["def"] = "HTTP/1.1 200 OK\nContent-Type: application/octet-stream\nContent-Length: ";
+	extansion_handling["405"] = "HTTP/1.1 405 Method Not Allowed\nContent-Type: text/html\nContent-Length: ";
 	extansion_handling["500"] = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length: ";
 }
 
@@ -366,8 +378,14 @@ void handle_hunged_cgi_client(info &clientes)
 	char bu[1025];
 	
 	std::ofstream out(".file.txt");
-	while (read(clientes.pipe, bu, 1024) > 0)
+	int te = 1;
+	while (te > 0)
+	{
+		te = read(clientes.pipe, bu, 1024);
+		bu[te] = '\0';
 		out << bu;
+	
+	}
 	out.close();
 	stat(".file.txt", &st);
 	clientes.size = st.st_size;
@@ -383,9 +401,24 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 {
 	if (clientes.is_hinged == 1)
 	{
-		clientes.waitpid_ret = waitpid(clientes.pid, NULL, WNOHANG);
+		int status;
+		clientes.waitpid_ret = waitpid(clientes.pid, &status, WNOHANG);
 		if (clientes.waitpid_ret == clientes.pid)
-			handle_hunged_cgi_client(clientes);
+		{
+			if (WEXITSTATUS(status))
+			{
+				std::stringstream ss ;
+				std::string ext;
+				std::string body = "<head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>Elhazin server</center></body></html>";
+				 clientes.buffer_to_send = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length:";
+				ss << body.size();
+				clientes.buffer_to_send += ss.str();
+				clientes.buffer_to_send += "\r\n\r\n";
+				clientes.buffer_to_send += body;
+			}
+			else 
+				handle_hunged_cgi_client(clientes);
+		}
 		return ;
 	}
 	if (clientes.status == 1) // here it will send the header onece and the clientes.status will be 0 , to not send it again
