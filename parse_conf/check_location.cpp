@@ -161,7 +161,7 @@ void	checkLocationUploadStore(Locations &location, std::istringstream &iss)
 {
 	std::string path;
 
-	if (location.getUploadStore() != "./uploads")
+	if (location.getUploadStoreIsSet() == true)
 		throw std::runtime_error("The location upload_store directive already exists.");
 	std::getline(iss, path);
 	if (path.empty() || isOnlyWhitespaces(path))
@@ -172,6 +172,7 @@ void	checkLocationUploadStore(Locations &location, std::istringstream &iss)
 	if (!(isDirectory(path.c_str())))
 		throw std::runtime_error("The location upload_store folder doesn't exist.");
 	location.setUploadStore(path);
+	location.setUploadStoreIsSet(true);
 }
 
 void	checkLocation(Locations &location, std::istringstream &iss, std::string directive)
