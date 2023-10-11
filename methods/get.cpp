@@ -97,11 +97,11 @@ void method_get::execute_cgi(std::string &path, std::string &arguments, std::str
 		close(fd[1]);
 		int status ;
 		infa.waitpid_ret = waitpid(pid, &status, WNOHANG);
-		if (WEXITSTATUS(status))
-		{
-			set_error_500();
-			throw std::runtime_error("\e[91mError: The cgi is not executed. response with 500\e[0m");
-		}
+		// if (WEXITSTATUS(status))
+		// {
+		// 	set_error_500();
+		// 	throw std::runtime_error("\e[91mError: The cgi is not executed. response with 500\e[0m");
+		// }
 		if (infa.waitpid_ret == -1)
 		{
 			set_error_500();
@@ -434,3 +434,4 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 		return ;
 	}
 }
+     

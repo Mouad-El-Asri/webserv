@@ -33,9 +33,7 @@ void method_get::send_indexing(DIR *dir)
 		if ( dp->d_type == DT_DIR)
 			fill << "<a href=\"" << temp << "/\">" << temp << "/</a>\n";
 		else
-			fill << "<a href=\"" << temp << "\">" << temp << "</a>\n";
-		
-			
+			fill << "<a href=\"" << temp << "\">" << temp << "</a>\n";	
 	}
 	fill << "</pre><hr>\n</body>\n</html>\n";
 	closedir(dir);
@@ -54,7 +52,18 @@ void	method_get::handle_auto_index()
 	if	((dir = opendir(path.c_str())) == NULL)
 		set_error_404();
 	else
+	{
+		if (this->path[this->path.size() - 1] != '/')
+		{
+			infa.buffer_to_send = "HTTP1.1/ 301 Moved Permanently\r\nLocation: ";
+			infa.buffer_to_send += url + "/";
+			infa.buffer_to_send += "\r\n\r\n";
+			infa.status = 1;
+			closedir(dir);
+			throw std::runtime_error("\e[91mFolder is requested , but need to be redirected\e[0m");
+		}
 		send_indexing(dir);
+	}
 }
 
 void	method_get::folder_handling()
