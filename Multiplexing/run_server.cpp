@@ -83,8 +83,13 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 				FD_SET(client->socket, &writes);
 		}
 		else if ((ret == 1 && client->all_received >= client->bl) || (ret == 0 && client->req_body.find("\r\n0\r\n\r\n") != std::string::npos))
+		{
+			std::cout << "it enterd to set writes" << std::endl;
 			if (!FD_ISSET(client->socket, &writes))
+			{
 				FD_SET(client->socket, &writes);
+			}
+		}
 		return 0;
 	}
 	else if (client->method == "DELETE")
@@ -195,6 +200,7 @@ void	runServer(Servers &servers)
 			{
 				if (client_write->method == "POST")
 				{
+					std::cout << "niggga response" << std::endl;
 					response(client_write, clientSockets, serversVec);
 					drop_client(client_write, &clients, reads, writes);
 				}

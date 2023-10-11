@@ -44,12 +44,9 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         body = get_body(client, client->directive);
         cl = convert_to_str((*body).length());
     }
-    else if (client->cgi || client->isSession)
+    else if (client->cgi)
     {
-        if (client->cgi)
             body = handle_cgi(client, client->directive, 0);
-        else
-            body = handle_cgi(client, client->directive, 1);
             cl = convert_to_str((*body).length());
         // client->header.statuscode = "HTTP/1.1 200 Forbidden";
     }
@@ -104,6 +101,20 @@ std::string grab_path_dir(std::string& req)
     return ret;
 }
 
+std::string get_header_value(t_client_info* client, const char *name, size_t len)
+{
+    std::string ret;
+    // std::cout << client->fst_req << std::endl;
+    size_t found = client->fst_req.find(name);
+    if (found == std::string::npos)
+        ret = "";
+    else if (client->is_multipart)
+        ret = client->fst_req.substr(found+len, client->fst_req.find(";",found+len) - found-len);
+    else
+         ret = client->fst_req.substr(found+len, client->fst_req.find("\r\n",found+len) - found-len);
+    return ret;
+}
+
 std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
 {
     std::string *ret = new std::string();
@@ -123,16 +134,26 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
         if (pid == 0)
         {
             filename = "cgi-bin"+filename;
+            std::string Content_Type;
+            std::string Content_Length;
+            std::string Path_Info;
+            std::string Server_Name;
+            Content_Type = "Content_Type=" + get_header_value(client, "Content-Type", 14);
+            Content_Length = "Content-Length=" +  get_header_value(client, "Content-Length", 16);
+            Path_Info =  "Path=" + grab_path(client->fst_req);
+            Server_Name = "Server_Name=" + working.getServerName();
             close(fd[0]);
             dup2(fd[1], 1);
             envp[0] = strdup("REQUEST_METHOD=POST");
             envp[1] = strdup("REDIRECT_STATUS=200");
-            envp[2] = strdup("Test=Hamid");
-            envp[3] = strdup("File=echo.php");
+            envp[2] = strdup(Content_Type.c_str());
+            envp[3] = strdup(Content_Length.c_str());
+            envp[4] = strdup(Path_Info.c_str());
+            envp[5] = strdup(Server_Name.c_str());
+            envp[6] = NULL;
             argv[0] = strdup("/usr/bin/php");
             argv[1] = strdup(filename.c_str());
             argv[2] = NULL;
-            envp[4] = NULL;
             execve("/usr/bin/php", argv, envp);
             exit(0);
         }
@@ -142,18 +163,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
         read(fd[0], buf, 1023);
         *ret = buf;
     }
-    // filename = "sessions"+filename;
-    // // std::cout << filename.c_str() << std::endl;
-    // std::ifstream file;
-    // file.open(filename.c_str());
-    // if (!file.is_open())
-    //     std::cout << "Error, could not open the file" << std::endl;
-    // std::string line;
-    // while(std::getline(file,line))
-    // {
-    //     *ret+=line;
-    //     *ret+="\r\n";
-    // }
     return ret;
 }
 
@@ -215,15 +224,19 @@ std::string* get_ext(std::string& req)
 
 void handle_content_length(t_client_info* client ,std::string& req_body, int binary_data_start)
 {
+    std::cout << "2 times" << std::endl;
         std::ofstream img;
         const char* data;
         std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
-        std::cout << client->working_location.getUploadStore() << std::endl;
-        std::cout << upload << std::endl;
-        img.open(upload.c_str(), std::ios::binary | std::ios::app);
+        // std::cout << upload << std::endl;
+        img.open(upload.c_str(), std::ios::binary);
         if (img.is_open())
         {
-
+            size_t isthere = req_body.find("----------------------------",binary_data_start);
+            if (client->is_multipart && isthere != std::string::npos)
+            {
+                req_body = req_body.substr(0, isthere);
+            }
             data = req_body.c_str() + binary_data_start;
             img.write(data, req_body.length() - binary_data_start);
         }
@@ -234,13 +247,19 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
         img.close();
 }
 
-void handle_chunked_encoding(t_client_info* client, const std::string& chunked_data) {
+void handle_chunked_encoding(t_client_info* client, std::string& chunked_data) {
     std::ofstream img;
     std::string chunk_size_str;
     size_t chunk_size;
     std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
-    img.open(upload.c_str(), std::ios::binary | std::ios::app);
+    img.open(upload.c_str(), std::ios::binary);
     size_t pos = 0;
+    // size_t isthere = chunked_data.find("-");
+    // if (client->is_multipart && isthere != std::string::npos)
+    // {
+    //     chunked_data = chunked_data.substr(0, isthere);
+    //     std::cout << chunked_data << std::endl;
+    // }
     while (pos < chunked_data.length()) {
         size_t chunk_size_end = chunked_data.find("\r\n", pos);
         if (chunk_size_end == std::string::npos)
@@ -271,7 +290,10 @@ int ft_my_Post(t_client_info *client)
     if (client->received)
         client->req_body.append(client->request, client->received);
     if (client->times == 0)
+    {
         client->header.fst_line = client->req_body.substr(0, client->req_body.find("\r\n"));
+        client->fst_req = client->req_body;
+    }
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
         if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
             return 0;
@@ -305,6 +327,7 @@ int ft_my_Post(t_client_info *client)
             {
                 client->header.filename = get_filename(client->req_body);
                 start_pos = client->req_body.rfind("\r\n\r\n") + 4;
+                client->is_multipart = true;
             }
             else
             {
