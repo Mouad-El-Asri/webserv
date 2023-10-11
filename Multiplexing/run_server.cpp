@@ -65,8 +65,8 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		client->times = 1;
 		client->method = "GET";
 		client->Info->socket = client->socket;
-		if (check_content_lenght(headers, client->Info) == 1)
-			return 0;
+		// if (check_content_lenght(headers, client->Info) == 1)
+		// 	return 0;
 		ft_get(client->data, client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
 			FD_SET(client->socket, &writes);
