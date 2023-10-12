@@ -46,7 +46,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     }
     else if (client->cgi)
     {
-            body = handle_cgi(client, client->directive, 0);
+            body = handle_cgi(client, client->directive);
             cl = convert_to_str((*body).length());
         // client->header.statuscode = "HTTP/1.1 200 Forbidden";
     }
@@ -115,12 +115,10 @@ std::string get_header_value(t_client_info* client, const char *name, size_t len
     return ret;
 }
 
-std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
+std::string* handle_cgi(t_client_info *client, Directives& working)
 {
     std::string *ret = new std::string();
     std::string filename = client->header.path_p.substr(client->header.path_p.rfind("/"));
-    if (flag == 0)
-    {
         (void)working;
         int fd[2];
         pid_t pid;
@@ -128,7 +126,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
         char *envp[13];
         char buf[1024];
         std::string str;
-
         pipe(fd);
         pid = fork();
         if (pid == 0)
@@ -136,25 +133,29 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
             filename = "cgi-bin"+filename;
             std::string Content_Type;
             std::string Content_Length;
+            std::string Url_Path;
             std::string Path_Info;
             std::string Server_Name;
             Content_Type = "Content_Type=" + get_header_value(client, "Content-Type", 14);
-            Content_Length = "Content-Length=" +  get_header_value(client, "Content-Length", 16);
-            Path_Info =  "Path=" + grab_path(client->fst_req);
+            Content_Length = "Content-Length=" +  std::to_string(get_length(client->fst_req));
+            Url_Path =  "Url_Path=" + grab_path(client->fst_req);
+            Path_Info = "Path_Info="+ client->working_location.getCgi()[".php"];
             Server_Name = "Server_Name=" + working.getServerName();
             close(fd[0]);
             dup2(fd[1], 1);
+            close(fd[1]);
             envp[0] = strdup("REQUEST_METHOD=POST");
             envp[1] = strdup("REDIRECT_STATUS=200");
             envp[2] = strdup(Content_Type.c_str());
             envp[3] = strdup(Content_Length.c_str());
-            envp[4] = strdup(Path_Info.c_str());
-            envp[5] = strdup(Server_Name.c_str());
-            envp[6] = NULL;
-            argv[0] = strdup("/usr/bin/php");
+            envp[4] = strdup(Url_Path.c_str());
+            envp[5] = strdup(Path_Info.c_str());
+            envp[6] = strdup(Server_Name.c_str());
+            envp[7] = NULL;
+            argv[0] = strdup(client->working_location.getCgi()[".php"].c_str());
             argv[1] = strdup(filename.c_str());
             argv[2] = NULL;
-            execve("/usr/bin/php", argv, envp);
+            execve(argv[0], argv, envp);
             exit(0);
         }
         close(fd[1]);
@@ -162,7 +163,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working, int flag)
         bzero(buf, sizeof(buf));
         read(fd[0], buf, 1023);
         *ret = buf;
-    }
     return ret;
 }
 

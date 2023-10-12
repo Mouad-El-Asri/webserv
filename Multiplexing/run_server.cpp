@@ -154,6 +154,11 @@ void	runServer(Servers &servers)
 				t_client_info *newClient = new t_client_info;
 				newClient->address_length = sizeof(newClient->address);
 				newClient->socket = accept(serverSockets[i], (struct sockaddr*)&(newClient->address), &(newClient->address_length));
+				for (size_t j = 0; j < serverSockets.size(); j++)
+				{
+					if (serversVec[i].getHost() == serversVec[j].getHost() && serversVec[i].getListen() == serversVec[j].getListen())
+						newClient->similarServers.push_back(serversVec[j]);
+				}
 				newClient->data = serversVec[i];
 				newClient->serverIndex = i;
 				if (newClient->socket == -1)
@@ -170,6 +175,22 @@ void	runServer(Servers &servers)
 			if (FD_ISSET(client->socket, &tempReads))
 			{
 				client->received = recv(client->socket, client->request, 60000, 0);
+				if (client->times == 0 && serversVec[client->serverIndex].getServerName() != "host")
+				{
+					for (size_t i = 0; i < client->similarServers.size(); i++)
+					{
+						if ("host" == client->similarServers[i].getServerName())
+						{
+							for (size_t j = 0; j < serversVec.size(); j++)
+							{
+								if (client->similarServers[i].getServerName() == serversVec[j].getServerName() && \
+									client->similarServers[i].getHost() == serversVec[j].getHost() &&
+									client->similarServers[i].getListen() == serversVec[j].getListen())
+									client->serverIndex = j;
+							}
+						}
+					}
+				}
 				client->all_received+=client->received;
 				if (client->received == -1)
 				{

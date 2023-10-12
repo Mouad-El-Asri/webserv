@@ -58,6 +58,7 @@ typedef struct s_client_info {
 	info* 					Info;
 	Directives				directive;
 	int						serverIndex;
+	std::vector<Directives> similarServers;
 	s_client_info			*next;
 
 	s_client_info() : address_length(0), socket(0), request(""), received(0), all_received(0), cgi(false) ,is_chunked_encoding(false), is_content_length(false), is_multipart(false), isCookieSet(false) , isSession(false),times(0), bl(0), next(NULL)
