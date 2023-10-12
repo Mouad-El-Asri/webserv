@@ -156,7 +156,7 @@ void	runServer(Servers &servers)
 				newClient->socket = accept(serverSockets[i], (struct sockaddr*)&(newClient->address), &(newClient->address_length));
 				for (size_t j = 0; j < serverSockets.size(); j++)
 				{
-					if (serversVec[i].getHost() == serversVec[j].getHost() && serversVec[i].getListen() == serversVec[j].getListen())
+					if (serversVec[i].getHost() == serversVec[j].getHost())
 						newClient->similarServers.push_back(serversVec[j]);
 				}
 				newClient->data = serversVec[i];
@@ -175,17 +175,21 @@ void	runServer(Servers &servers)
 			if (FD_ISSET(client->socket, &tempReads))
 			{
 				client->received = recv(client->socket, client->request, 60000, 0);
-				if (client->times == 0 && serversVec[client->serverIndex].getServerName() != "host")
+				std::string requestString(client->request);
+				std::string newStr = requestString.substr(requestString.find("Host:") + 6);
+				std::string host = newStr.substr(0, newStr.find('\n'));
+				std::cout << host << std::endl;
+				exit(1);
+				if (client->times == 0 && serversVec[client->serverIndex].getServerName() != host)
 				{
 					for (size_t i = 0; i < client->similarServers.size(); i++)
 					{
-						if ("host" == client->similarServers[i].getServerName())
+						if (host == client->similarServers[i].getServerName())
 						{
 							for (size_t j = 0; j < serversVec.size(); j++)
 							{
 								if (client->similarServers[i].getServerName() == serversVec[j].getServerName() && \
-									client->similarServers[i].getHost() == serversVec[j].getHost() &&
-									client->similarServers[i].getListen() == serversVec[j].getListen())
+									client->similarServers[i].getHost() == serversVec[j].getHost())
 									client->serverIndex = j;
 							}
 						}
