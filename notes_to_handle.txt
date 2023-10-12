@@ -4,5 +4,3 @@ ba9i khaseni nhandli error default_error_pages and code status
 ba9i khaseni nhandli indexing file 
 ba9i khaseni nhandli 
 mouad: had zmr mra mra kaydkhl ldik lfunc 2 mrat 
-
-host:

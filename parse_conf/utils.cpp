@@ -167,30 +167,30 @@ bool	isDirectory(const char* path)
         return (false);
 }
 
-std::string removeExtraWhitespace(const std::string &str)
-{
-    std::string result;
-    bool inWhitespace = false;
+// std::string removeExtraWhitespace(const std::string &str)
+// {
+//     std::string result;
+//     bool inWhitespace = false;
 
-    for (unsigned int i = 0; i < str.length(); i++)
-	{
-        if (std::isspace(str[i]))
-		{
-            if (!inWhitespace)
-			{
-                result += ' ';
-                inWhitespace = true;
-            }
-        }
-		else
-		{
-            result += str[i];
-            inWhitespace = false;
-        }
-    }
+//     for (unsigned int i = 0; i < str.length(); i++)
+// 	{
+//         if (std::isspace(str[i]))
+// 		{
+//             if (!inWhitespace)
+// 			{
+//                 result += ' ';
+//                 inWhitespace = true;
+//             }
+//         }
+// 		else
+// 		{
+//             result += str[i];
+//             inWhitespace = false;
+//         }
+//     }
 
-    return (result);
-}
+//     return (result);
+// }
 
 bool	isLocationBlock(const std::string& line)
 {

@@ -146,15 +146,22 @@ void	checkLocationReturn(Locations &location, std::istringstream &iss)
 {
 	std::string value;
 
-	if (location.getReturn() != "")
+	if (location.getReturn().empty())
 		throw std::runtime_error("The location return directive already exists.");
-	std::getline(iss, value);
-	if (value.empty() || isOnlyWhitespaces(value))
-		throw std::runtime_error("The location Return directive is empty or contains only whitespaces.");
-	value = trimSpaces(value);
-	if (containsWhitespace(value))
-		throw std::runtime_error("The location return directive contains whitespaces.");
-	location.setReturn(value);
+	while (std::getline(iss, value, ' '))
+	{
+		if (!(isOnlyWhitespaces(value)) && !(value.empty()))
+		{
+			value = trimSpaces(value);
+			location.setReturn(value);
+		}
+	}
+	if (location.getIndex().empty())
+		throw std::runtime_error("The location return directive is empty or contains only whitespaces.");
+	else if (location.getReturn().size() != 2)
+		throw std::runtime_error("The location return directive is invalid.");
+	else if (!(isNum(location.getReturn()[0])))
+		throw std::runtime_error("The location return directive status code is not a number.");
 }
 
 void	checkLocationUploadStore(Locations &location, std::istringstream &iss)

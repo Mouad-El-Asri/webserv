@@ -33,9 +33,9 @@ void	parse_servers(Servers &servers)
 		}
 	}
 
-	for (size_t i = 0; i < serversSize; i++) {
-		size_t j = i + 1;
-		while (j < serversSize)
+	for (size_t i = 0; i < serversSize; i++)
+	{
+		for (size_t j = i + 1; j < serversSize; j++)
 		{
 			if (serversVec[i].getServerName() == serversVec[j].getServerName())
 			{
@@ -45,7 +45,20 @@ void	parse_servers(Servers &servers)
 						throw std::runtime_error("The server_name, host and port of two different server blocks are identical.");
 				}
 			}
-			j++;
+		}
+	}
+
+	for (size_t i = 0; i < serversSize; i++)
+	{
+		std::vector<Locations>	locationsVec = serversVec[i].getLocationsVec();
+		size_t locationsSize = locationsVec.size();
+		for (size_t j = 0; j < locationsSize; j++)
+		{
+			for (size_t k = j + 1; k < locationsSize; k++)
+			{
+				if (locationsVec[j].getLocation() == locationsVec[k].getLocation())
+					throw std::runtime_error("There are identical location directives in the same server block.");
+			}
 		}
 	}
 }

@@ -9,7 +9,7 @@ Locations::Locations()
 	this->acceptedMethods["DELETE"] = false;
 	this->index.clear();
 	this->autoIndex = false;
-	this->Return = "";
+	this->Return.clear();
 	this->cgiAllowed = false;
 	this->cgi.clear();
 	this->uploadStore = "./uploads";
@@ -48,7 +48,7 @@ void	Locations::clearLocation()
 	this->acceptedMethods["DELETE"] = false;
 	this->index.clear();
 	this->autoIndex = false;
-	this->Return = "";
+	this->Return.clear();
 	this->cgiAllowed = false;
 	this->cgi.clear();
 	this->uploadStore = "./uploads";
@@ -80,7 +80,7 @@ bool	Locations::getAutoIndex() const
 	return (this->autoIndex);
 }
 
-std::string	Locations::getReturn() const
+std::vector<std::string>	Locations::getReturn() const
 {
 	return (this->Return);
 }
@@ -130,9 +130,9 @@ void	Locations::setAutoIndex(const bool& autoIndex)
 	this->autoIndex = autoIndex;
 }
 
-void	Locations::setReturn(const std::string& Return)
+void	Locations::setReturn(const std::string& str)
 {
-	this->Return = Return;
+	this->Return.push_back(str);
 }
 
 void	Locations::setCgiAllowed(const bool& cgiAllowed)
