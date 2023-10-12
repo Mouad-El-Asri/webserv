@@ -31,7 +31,7 @@ int	createListeningSocket(std::string &host, int &port)
 	socket_listen = socket(bind_address->ai_family, bind_address->ai_socktype, bind_address->ai_protocol);
 	if (socket_listen == -1)
 		throw std::runtime_error("Failed to create socket for server block.");
-	ret = setsockopt(socket_listen, SOL_SOCKET,SO_REUSEADDR, &option_value,sizeof(option_value));
+	ret = setsockopt(socket_listen, SOL_SOCKET,SO_REUSEPORT, &option_value,sizeof(option_value));
 	if (ret == -1)
 		throw std::runtime_error("Failed to set socket option for server block.");
 
