@@ -136,11 +136,13 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             std::string Url_Path;
             std::string Path_Info;
             std::string Server_Name;
+            std::string PHP_SELF;
             Content_Type = "Content_Type=" + get_header_value(client, "Content-Type", 14);
             Content_Length = "Content-Length=" +  std::to_string(get_length(client->fst_req));
             Url_Path =  "Url_Path=" + grab_path(client->fst_req);
             Path_Info = "Path_Info="+ client->working_location.getCgi()[".php"];
             Server_Name = "Server_Name=" + working.getServerName();
+            PHP_SELF = "PHP_SELF="+grab_path(client->fst_req);
             close(fd[0]);
             dup2(fd[1], 1);
             close(fd[1]);
@@ -151,10 +153,12 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             envp[4] = strdup(Url_Path.c_str());
             envp[5] = strdup(Path_Info.c_str());
             envp[6] = strdup(Server_Name.c_str());
-            envp[7] = NULL;
+            envp[7] = strdup(PHP_SELF.c_str());
+            envp[8] = NULL;
             argv[0] = strdup(client->working_location.getCgi()[".php"].c_str());
             argv[1] = strdup(filename.c_str());
             argv[2] = NULL;
+            std::cout << argv[0] << " ------ " << argv[1] << std::endl;
             execve(argv[0], argv, envp);
             exit(0);
         }
@@ -163,7 +167,14 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
         bzero(buf, sizeof(buf));
         read(fd[0], buf, 1023);
         *ret = buf;
-    return ret;
+        std::cout << *ret << std::endl;
+        if (ret->find("Content-Length") != std::string::npos)
+        {
+            std::cout << "ach fiha" << std::endl;
+            size_t val = get_length(*ret);
+            *ret = (*ret).substr(0,val);
+        }
+        return ret;
 }
 
 size_t hextodec(const char *s)
