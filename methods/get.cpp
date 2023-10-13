@@ -17,109 +17,183 @@
 
 
 // hndling cgi
- 
-void method_get::waiting_for_child( int *fd)
+void set_headerto_send(info& inf, std::string headers, std::ofstream& temp)
 {
-	char buf[1024];
-	std::string str;
-	std::ofstream temp(".file.txt");
-	int red = 1;
-	while ( red > 0)
-	{
-		red = read(fd[0], buf, 1024);	
-		buf[red] = '\0';
-		str = buf;
-		temp << str;
-	}
-	close(fd[0]);
+	inf.buffer_to_send = headers;
 	temp.close();
-	infa.file = new std::ifstream(".file.txt");
-	if (infa.file->is_open() == false)
-	{
-		set_error_500();
-		throw std::exception();
-	}
-	struct stat st;
-	stat(".file.txt", &st);
-	infa.size = st.st_size;
-	infa.status = 1;
-	std::stringstream ss;
-	ss << infa.size;
-	infa.file = new std::ifstream(".file.txt");
-	infa.buffer_to_send = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + ss.str() + "\r\n\r\n";
-	infa.is_hinged = 0;	
-	std::runtime_error("\e[91mThe cgi is executed \e[0m");
+	inf.status = 1;
+	inf.is_hinged = 0;
 }
- 
 
-void method_get::execute_cgi(std::string &path, std::string &arguments, std::string& run_it)
-{
-	int fd[2];
-	pid_t pid;
-	char *argv[4];
-	std::string str;
-	char *envp[5];
-	struct stat st;
-	if (stat(path.c_str(), &st) == -1)
-	{
-		set_error_404();
-		throw std::runtime_error("\e[91mError: The file is not found. response with 404\e[0m");
-	}
-	if (access(path.c_str(), R_OK) == -1)
-	{
-		set_error_403();
-		throw std::runtime_error("\e[91mError: The file is not readable. response with 403\e[0m");
-	}
-	pipe(fd);
-	pid = fork();
-	if (pid == 0)
-	{
-		close(fd[0]);
-		dup2(fd[1], 1);
-		argv[0] = strdup(run_it.c_str());
-		argv[1] = strdup(path.c_str());
-		argv[2] = NULL;
-		envp[0] = strdup("REQUEST_METHOD=GET");
-		str = "SCRIPT_NAME=" + path;
-		envp[2] = strdup(str.c_str());
-		if (arguments != "")
-		{
-			envp[3] = strdup(arguments.c_str());
-			envp[4] = NULL;	
+
+
+void read_cgi_output(info& infa) {
+
+    static size_t size = 0;
+	std::cout << "Iam here" << std::endl;
+	size_t readed = 0;
+    char Buff[1501];
+    std::string buf;
+	std::string body;
+    std::string str;
+    static std::ofstream temp(".file.txt");
+    std::string content_type;
+	std::string content_lenght;
+	std::string headers;
+    if (infa.first_enter == 0) {
+					infa.first_enter = 1;
+					readed = read(infa.pipe, Buff, 1500);
+					Buff[readed] = '\0';
+					if (readed == 0)
+						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n\r\n", temp);
+					else if (readed < 0)
+						return set_headerto_send(infa , "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length: 25\r\n\r\n<h1>Internel server error<h1>", temp);
+					buf = Buff;
+					if (buf.find("\r\n\r\n") == std::string::npos)
+						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n", temp);
+					try {
+					headers = buf.substr(0, buf.find("\r\n\r\n"));
+					if (headers.find("Content-Type: ") != std::string::npos)
+						content_type = headers.substr(headers.find("Content-Type: ") + 14, headers.find("\r\n") - headers.find("Content-Type: ") - 14);
+					else
+						content_type = "text/html";
+					if (headers.find("Content-Length: ") == std::string::npos)
+					{
+						return set_headerto_send(infa ,"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n", temp);
+					}
+					content_lenght = headers.substr(headers.find("Content-Length: ") + 16, headers.find("\r\n") -  headers.find("Content-Length: ") -16);
+					size = std::atoi(content_lenght.c_str());
+					if (size == 0)
+					{
+						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n", temp);
+
+					}
+					body = buf.substr(buf.find("\r\n\r\n") + 4, buf.size() - buf.find("\r\n\r\n") - 4);
+					if (readed > size)
+					{
+						std::cout << "here in return whem there is no content lenght" << std::endl;
+						temp << body.substr(0, size);
+						temp.close();
+						infa.file = new std::ifstream(".file.txt");
+						infa.size = size;
+						set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+						return ;
+					}
+					else
+					{
+						temp << body.substr(0, readed);
+						size -= readed;
+					}
+					}
+					catch(std::exception &e)
+					{
+						std::cout << "\e[91mError : \e[42man execption is thrown => : " << e.what() << "\e[0m" << std::endl;
+						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n", temp);
+					}
+					std::cout << "Reading the cgi here " << std::endl;
 		}
-		else
-			envp[3] = NULL;
-		execve(run_it.c_str(), argv, envp);
-		exit(0);
-	}
-	else
-	{
-		close(fd[1]);
-		int status ;
-		infa.waitpid_ret = waitpid(pid, &status, WNOHANG);
-		// if (WEXITSTATUS(status))
-		// {
-		// 	set_error_500();
-		// 	throw std::runtime_error("\e[91mError: The cgi is not executed. response with 500\e[0m");
-		// }
-		if (infa.waitpid_ret == -1)
+		else if (size > 0)
 		{
-			set_error_500();
-			throw std::runtime_error("\e[91mError: The cgi is not executed. response with 500\e[0m");
+			readed = read(infa.pipe, Buff, 1500);
+			Buff[readed] = '\0';
+			std::cout << Buff << std::endl; 
+			if (readed == 0)
+			{
+				temp.close();
+				infa.file = new std::ifstream(".file.txt");
+				infa.size = size;
+				set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+				return ;
+			}
+			else if (readed < 0)
+				return set_headerto_send(infa , "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 25\r\n\r\n<h1>Internel server error<h1>", temp);
+			else if (readed  >= size)
+			{
+				temp << body.substr(0, size);
+				temp.close();
+				infa.file = new std::ifstream(".file.txt");
+				infa.size = size;
+				set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+				return ;				
+			}
+			else 
+			{
+				temp << body.substr(0, readed);
+				size -= readed;
+			}
 		}
-		else if (infa.waitpid_ret == pid)
+		else 
 		{
-			waiting_for_child( fd);
+			temp << body.substr(0, size);
+			temp.close();
+			infa.file = new std::ifstream(".file.txt");
+			infa.size = size;
+			set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+			return ;			
 		}
-		else if (infa.waitpid_ret == 0)
-		{
-			infa.pipe = fd[0];
-			infa.pid = pid;
-			infa.is_hinged = 1;
-			std::runtime_error("\e[91m the cgi is hunged\e[0m");
-			//contuine the execution and handle the cgi in another function when the return of waitpid is noy zero and it is the pid of the child process
-		}
-	}
+	
+}
+
+
+
+
+
+void method_get::execute_cgi(std::string& path, std::string& arguments, std::string& run_it) {
+    int fd[2];
+    pid_t pid;
+    char *argv[4];
+    std::string str;
+    char *envp[5];
+    struct stat st;
+
+    if (stat(path.c_str(), &st) == -1) {
+        set_error("404");
+        throw std::runtime_error("\e[91mError: The file is not found. Response with 404\e[0m");
+    }
+
+    if (access(path.c_str(), R_OK) == -1) {
+        set_error("403");
+        throw std::runtime_error("\e[91mError: The file is not readable. Response with 403\e[0m");
+    }
+
+    pipe(fd);
+    pid = fork();
+
+    if (pid == 0) {
+        close(fd[0]);
+        dup2(fd[1], 1);
+        argv[0] = strdup(run_it.c_str());
+        argv[1] = strdup(path.c_str());
+        argv[2] = NULL;
+        envp[0] = strdup("REQUEST_METHOD=GET");
+        str = "PATH_INFO=" + path;
+        envp[1] = strdup(str.c_str());
+        if (!arguments.empty()) {
+            envp[2] = strdup(arguments.c_str());
+            envp[3] = NULL;
+        } else {
+            envp[2] = NULL;
+        }
+        execve(run_it.c_str(), argv, envp);
+        exit(0);
+    } else {
+        close(fd[1]);
+        int status;
+        infa.waitpid_ret = waitpid(pid, &status, WNOHANG);
+
+        if (infa.waitpid_ret == -1) {
+            set_error("500");
+            throw std::runtime_error("\e[91mError: The CGI is not executed. Response with 500\e[0m");
+        } else if (infa.waitpid_ret == pid) {
+            read_cgi_output(infa);
+            throw std::runtime_error("\e[91mThe CGI is executed \e[0m");
+        } else if (infa.waitpid_ret == 0) {
+            infa.pipe = fd[0];
+            infa.pid = pid;
+            infa.is_hinged = 1;
+            throw std::runtime_error("\e[91mThe CGI is hung\e[0m");
+        }
+    }
 }
 
 int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion, std::string arguments)
@@ -174,6 +248,7 @@ void method_get::check_location()
 	std::string ext;
 	std::string arguments;
 	int redirection = 0;
+	std::stringstream ss;
 	int checked_cgi = 0;
 	std::string cgi_script;
 	int is_checked = 0;
@@ -188,9 +263,10 @@ void method_get::check_location()
 				this->auto_index = keep.getLocationsVec()[i].getAutoIndex();
 				this->index = keep.getLocationsVec()[i].getIndex();
 				this->route = keep.getLocationsVec()[i].getRoot();
-				// if (route[route.size() - 1] != '/')
-				// 	route += "/";
+				if (route[route.size() - 1] != '/')
+					route += "/";
 				path = route + url.substr(size, url.size());
+
 				if (keep.getLocationsVec()[i].getCgi().size() != 0)
 				{
 					std::string ext;
@@ -209,10 +285,9 @@ void method_get::check_location()
 				}
 				else 
 					checked_cgi = 0;
-				if (keep.getLocationsVec()[i].getReturn() != "")
+				if (keep.getLocationsVec()[i].getReturn().size())
 				{
-					std::cout << keep.getLocationsVec()[i].getReturn() << std::endl;
-					infa.buffer_to_send = "HTTP/1.1 302 Found\r\nLocation: " + keep.getLocationsVec()[i].getReturn() + "\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+					infa.buffer_to_send = "HTTP/1.1 "+ keep.getLocationsVec()[i].getReturn()[0] + "" + "Found\r\nLocation: " + keep.getLocationsVec()[i].getReturn()[1] + "\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
 					redirection = 1;			
 				}
 				else
@@ -227,10 +302,11 @@ void method_get::check_location()
 		}
 		i++;
 	}
-
+	infa.path = path;
 	if (forbidden == 1)
 	{
-		set_not_allowed();
+		set_error("405");
+
 		throw std::runtime_error("\e[91mError: The method is not allowed. response with 403\e[0m");
 	}
 	if (redirection == 1)
@@ -240,10 +316,11 @@ void method_get::check_location()
 	if (checked_cgi == 1)
 	{
 		execute_cgi(let,  arguments, cgi_script);
+		std::cout << "\e[96mGET : \e[42mThe cgi is executed\e[0m" << std::endl;
 	}
 	if (is_checked == 0)
 	{
-		set_error_404();
+		set_error("404");
 		throw std::runtime_error("\e[91mError: The location is not found. response with 404\e[0m");
 	}
 	
@@ -257,7 +334,7 @@ void method_get::get_check_path()
 			{
 					if (access(path.c_str(), R_OK) == -1)
 					{
-						set_error_403();
+						set_error("403");
 						throw std::runtime_error("\e[91mError: The file is not readable. response with 403\e[0m");
 					}
 					this->size = st.st_size;
@@ -272,13 +349,12 @@ void method_get::get_check_path()
 			}
 			else
 			{
-				set_error_404();
+				set_error("404");
 				throw std::runtime_error("\e[91mError: The file is not found. response with 404\e[0m");
 			}
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "path: " << path << std::endl;
 		std::cout << "\e[36mGET METHOD  : "  << e.what() << std::endl;
 	}
 }
@@ -297,6 +373,8 @@ void method_get::set_extasion()
 	extansion_handling[".mp3"] = moth + "Content-Type: audio/mpeg\nContent-Length: ";
 	extansion_handling[".pdf"] = moth + "Content-Type: application/pdf\nContent-Length: ";
 	extansion_handling[".txt"] = moth + "Content-Type: text/plain\nContent-Length: ";
+	extansion_handling[".php"] = moth + "Content-Type: text/html\nContent-Length: ";
+	extansion_handling[".py"] = moth + "Content-Type: text/html\nContent-Length: ";
 	extansion_handling["404"] = "HTTP/1.1 404 Not Found\nContent-Type: text/html\nContent-Length: ";
 	extansion_handling["403"] = "HTTP/1.1 403 Forbidden\nContent-Type: text/html\nContent-Length: ";
 	extansion_handling["500"] = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length: ";
@@ -361,8 +439,19 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 void send_header_in_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
 	std::cout << "\e[96mGET : \e[42mSending header to the socket " << clientes.socket << "\e[0m" << std::endl;
-	if (send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0) < 0)
+	std::cout << "Th eheader is " << clientes.buffer_to_send << std::endl;
+	int i =  send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0);
+	if (i < 0)
 	{
+		std::cout << "\e[91mGet : \e[42mError : an error occured with the socket " << clientes.socket <<  ", while sending the header\e[0m" << std::endl;
+		if (clientes.file)
+			clientes.file->close();
+		drop_client(client_write, clients, reads, writes);
+		return ;
+	}
+	if (i == 0)
+	{
+		std::cout << "\e[91mGet : \e[42mThe header is empty the send function returns 0  \e[0m" << std::endl;
 		if (clientes.file)
 			clientes.file->close();
 		drop_client(client_write, clients, reads, writes);
@@ -371,31 +460,6 @@ void send_header_in_response(info &clientes, t_client_info *client_write , t_cli
 	clientes.status = 0;	
 }
 
-void handle_hunged_cgi_client(info &clientes)
-{
-	struct stat st;
-	std::stringstream ss;
-	char bu[1025];
-	
-	std::ofstream out(".file.txt");
-	int te = 1;
-	while (te > 0)
-	{
-		te = read(clientes.pipe, bu, 1024);
-		bu[te] = '\0';
-		out << bu;
-	
-	}
-	out.close();
-	stat(".file.txt", &st);
-	clientes.size = st.st_size;
-	ss << clientes.size;
-	clientes.file = new std::ifstream(".file.txt");
-	clientes.buffer_to_send = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: " + ss.str() + "\r\n\r\n";
-	std::cout << "\e[96mGET : \e[42mThe cgi is executed after time\e[0m" << std::endl;
-	clientes.is_hinged = 0;
-	clientes.status = 1;
-}
 
 void	get_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
@@ -405,33 +469,21 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 		clientes.waitpid_ret = waitpid(clientes.pid, &status, WNOHANG);
 		if (clientes.waitpid_ret == clientes.pid)
 		{
-			if (WEXITSTATUS(status))
-			{
-				std::stringstream ss ;
-				std::string ext;
-				std::string body = "<head><title>500 Internal Server Error</title></head><body><center><h1>500 Internal Server Error</h1></center><hr><center>Elhazin server</center></body></html>";
-				 clientes.buffer_to_send = "HTTP/1.1 500 Internal Server Error\nContent-Type: text/html\nContent-Length:";
-				ss << body.size();
-				clientes.buffer_to_send += ss.str();
-				clientes.buffer_to_send += "\r\n\r\n";
-				clientes.buffer_to_send += body;
-			}
-			else 
-				handle_hunged_cgi_client(clientes);
+				std::cout << "\e[96mGET : \e[42mHnadle cgi in response\e[0m" << std::endl;
+				read_cgi_output(clientes);
 		}
 		return ;
 	}
-	if (clientes.status == 1) // here it will send the header onece and the clientes.status will be 0 , to not send it again
+	if (clientes.status == 1)
 		send_header_in_response(clientes, client_write, clients, reads, writes);
-	else if (clientes.file && clientes.file->eof() == false) // here it will send the file if the response contains a file, and the file is not finished yet 
+	else if (clientes.file && clientes.file->eof() == false) 
 		send_file_in_response(clientes, client_write, clients, reads, writes);
-	else // here in case the file is finished or there is no file to send , it will close the socket and drop the client
+	else
 	{
-		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "\e[0m" << std::endl;
 		if (clientes.file)
 			clientes.file->close();
+		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "Method GET is end\e[0m" << std::endl;
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}
 }
-     

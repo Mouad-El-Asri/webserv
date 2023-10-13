@@ -17,7 +17,7 @@ void method_get::file_handling()
 	infa.file = new std::ifstream(path.c_str(), std::ios::binary);
 	if (!infa.file->is_open())
 	{
-		this->set_error_404();
+		this->set_error("404");
 		infa.status = 1;
 		return;
 	}

@@ -1,5 +1,30 @@
 #include "../Request/POST/ft_Post.hpp"
 
+
+void set_error(std::map<std::string, std::string> error_pages, info &inf, std::string error, std::string header)
+{
+	struct stat st;
+	std::stringstream ss;
+	std::string ext;
+	std::string path = error_pages[error];
+	inf.file = new std::ifstream(path.c_str(), std::ios::binary);
+	if (!inf.file->is_open())
+	{
+		inf.buffer_to_send= "HTTP/1.1 500 Internal Server Error\r\nContent-Lenght: 0\r\n\r\n";
+		inf.file->close();
+		inf.file = NULL;
+		std::cout << "File is not found " << std::endl;
+		return ;
+	}
+	stat(path.c_str(),  &st);
+	inf.size = st.st_size;
+	header += ss.str();
+	header += "\r\n\r\n";
+	inf.buffer_to_send = header;
+	inf.status = 0;
+
+}
+
 int check_spaces(std::string &str)
 {
 	int i = 0;
@@ -28,25 +53,24 @@ int check_content_lenght(std::string &headers, info *client)
 int  check_which_method(std::string& headers, t_client_info *client, fd_set &writes, std::vector<int> &clientSockets, std::vector<Directives> &serversVec)
 {
 	int ret;
+	try {
 	if (client->times == 0)
 	{
 		int start = headers.find(" ") + 1;
 		client->method = headers.substr(0, headers.find(" "));
 		client->url = headers.substr(start, headers.find(" ", start) - start);
 		std::string version = headers.substr(headers.find(" ", start) + 1, headers.find("\r\n") - headers.find(" ", start) - 1);
-		if (check_spaces(headers) != 2)
+		if (check_spaces(headers) != 2 )
 		{
 			std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
-			client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
-			client->Info->status = 1;
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "400", "HTTP/1.1 400 Bad Request\r\nContent-Type: test/html\r\nContent-Length: ");
 			FD_SET(client->socket, &writes);
 			return 1;
 		}
 		if (client->method != "GET" && client->method != "POST" && client->method != "DELETE")
 		{
 			std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
-			client->Info->buffer_to_send = "HTTP/1.1 501 Not Implemented\r\n\r\n";
-			client->Info->status = 1;
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "405", "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: test/html\r\nContent-Length: ");
 			FD_SET(client->socket, &writes);
 
 			return 1;
@@ -54,7 +78,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		if (version != "HTTP/1.1")
 		{
 			std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
-			client->Info->buffer_to_send = "HTTP/1.1 505 HTTP Version Not Supported\r\n\r\n";
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "505", "HTTP/1.1 505 Method Not Allowed\r\nContent-Type: test/html\r\nContent-Length: ");
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
 			return 1;
@@ -65,9 +89,14 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		client->times = 1;
 		client->method = "GET";
 		client->Info->socket = client->socket;
-		// if (check_content_lenght(headers, client->Info) == 1)
-		// 	return 0;
-		ft_get(client->data, client->url, *(client->Info));
+		// if (headers.find("Content-Length: ") == std::string::npos)
+		// {
+		// 	std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
+		// 	set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "400", "HTTP/1.1 400 Bad Request\r\nContent-Type: test/html\r\nContent-Length: ");
+		// 	FD_SET(client->socket, &writes);
+		// 	return 1;		
+		// }
+		ft_get(serversVec[client->serverIndex], client->url, *(client->Info));
 		if (!FD_ISSET(client->socket, &writes))
 			FD_SET(client->socket, &writes);
 		return 0;
@@ -104,9 +133,18 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else 
 	{
+			std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "400", "HTTP/1.1 400 Bad Request\r\nContent-Type: test/html\r\nContent-Length: ");
+			FD_SET(client->socket, &writes);
+			return 1;
+	}
+	}
+	catch (std::exception &e)
+	{
+		std::cout << e.what() << std::endl;
 		std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
-		client->Info->buffer_to_send = "HTTP/1.1 400 Bad Request\r\n\r\n";
-		client->Info->status = 1;
+		set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "400", "HTTP/1.1 400 Bad Request\r\nContent-Type: test/html\r\nContent-Length: ");
+		FD_SET(client->socket, &writes);
 		return 1;
 	}
 	return 1;

@@ -85,7 +85,7 @@ void ft_delete::check_stat()
 	{
 		if (access(path.c_str(), W_OK) == -1)
 		{
-			set_error_403();
+			set_error("403");
 			throw std::runtime_error("\e[102mError: The file is not writable. response with 403\e[0m");
 		}
 		if (S_ISDIR(st.st_mode))
@@ -97,7 +97,7 @@ void ft_delete::check_stat()
 	}
 	else
 	{
-		set_error_404();
+		set_error("404");
 		throw std::runtime_error("\e[102mError: The file is not found. response with 404\e[0m");
 	}
 }
@@ -130,12 +130,12 @@ void ft_delete::location_check()
 	}
 	if (forbidden == 1)
 	{
-		set_error_403();
+		set_error("403");
 		throw std::runtime_error("\e[102mError: The method is not allowed. response with 403\e[0m");
 	}
 	if (is_checked == 0)
 	{
-		set_error_404();
+		set_error("404");
 		throw std::runtime_error("\e[102mError: The location is not found. response with 404\e[0m");
 	}
 }

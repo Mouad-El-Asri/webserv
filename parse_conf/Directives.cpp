@@ -12,7 +12,9 @@ Directives::Directives()
 	this->errorPages["405"] = "default_error_pages/405.html";
 	this->errorPages["413"] = "default_error_pages/413.html";
 	this->errorPages["500"] = "default_error_pages/500.html";
+	this->errorPages["501"] = "default_error_pages/501.html";
 	this->errorPages["503"] = "default_error_pages/503.html";
+	this->errorPages["505"] = "default_error_pages/505.html";
 	this->maxBodySizeInBytes = -1;
 	this->index.clear();
 	this->root = "";

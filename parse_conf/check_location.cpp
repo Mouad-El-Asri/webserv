@@ -146,7 +146,7 @@ void	checkLocationReturn(Locations &location, std::istringstream &iss)
 {
 	std::string value;
 
-	if (location.getReturn().empty())
+	if (!(location.getReturn().empty()))
 		throw std::runtime_error("The location return directive already exists.");
 	while (std::getline(iss, value, ' '))
 	{

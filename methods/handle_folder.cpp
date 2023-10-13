@@ -16,33 +16,42 @@
 
 void method_get::send_indexing(DIR *dir)
 {
-	struct dirent *dp;
-    std::ofstream  fill("./indexing.html");
-	struct stat st;
+    struct dirent *dp;
+    std::ofstream fill("./indexing.html");
+    struct stat st;
     if (!fill.is_open())
     {
         // std::cout << "error in opening file" << std::endl;
-        return ; 
+        return;
     }
-	fill << "<html>\n<head>\n<title>Index of " << url << "</title>\n <style> body {background-color: Cyan; font-size: 14px}</style>\n</head>\n<body>\n<h1>Index of " << url << "</h1>\n<hr>\n<pre>\n";
- 	while ((dp = readdir(dir)) != NULL)
+    fill << "<!DOCTYPE html>\n<html>\n<head>\n<title>Index of " << url << "</title>\n";
+    fill << "<style> body {background-color: #f4f4f4; font-size: 16px; font-family: Arial, sans-serif;}\n";
+    fill << "h1 {color: #333333;}\n";
+    fill << "a {text-decoration: none; color: #007bff;}\n";
+    fill << "a:hover {text-decoration: underline;}\n";
+    fill << "pre {font-family: 'Courier New', monospace;}</style>\n";
+    fill << "</head>\n<body>\n";
+    fill << "<h1>Index of " << url << "</h1>\n";
+    fill << "<hr>\n<pre>\n";
+
+    while ((dp = readdir(dir)) != NULL)
     {
-		std::string temp = dp->d_name;
-		if (temp == "." || temp == "..")
-			continue;
-		if ( dp->d_type == DT_DIR)
-			fill << "<a href=\"" << temp << "/\">" << temp << "/</a>\n";
-		else
-			fill << "<a href=\"" << temp << "\">" << temp << "</a>\n";	
-	}
-	fill << "</pre><hr>\n</body>\n</html>\n";
-	closedir(dir);
-	fill.close();
-	this->path = "./indexing.html";
-	stat(path.c_str() , &st);
-	this->size = st.st_size;
-	file_handling();
-	std::runtime_error("\e[91mFolder is requested , resopnse with indexing its content\e[0m");
+        std::string temp = dp->d_name;
+        if (temp == "." || temp == "..")
+            continue;
+        if (dp->d_type == DT_DIR)
+            fill << "<a href=\"" << temp << "/\">" << temp << "/</a>\n";
+        else
+            fill << "<a href=\"" << temp << "\">" << temp << "</a>\n";
+    }
+    fill << "</pre><hr>\n</body>\n</html>\n";
+    closedir(dir);
+    fill.close();
+    this->path = "./indexing.html";
+    stat(path.c_str(), &st);
+    this->size = st.st_size;
+    file_handling();
+    std::runtime_error("\e[91mFolder is requested, response with indexing its content\e[0m");
 }
 
 void	method_get::handle_auto_index()
@@ -50,7 +59,7 @@ void	method_get::handle_auto_index()
 
 	DIR	*dir;
 	if	((dir = opendir(path.c_str())) == NULL)
-		set_error_404();
+		set_error("404");
 	else
 	{
 		if (this->path[this->path.size() - 1] != '/')
@@ -87,5 +96,5 @@ void	method_get::folder_handling()
 	if (this->auto_index == true)
 		handle_auto_index();
 	else
-		set_error_403();
+		set_error("403");
 }

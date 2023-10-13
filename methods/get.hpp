@@ -69,6 +69,8 @@
 #include   "../includes/Servers.hpp"
 #include "../includes/conf_parser.hpp"
 
+class method_get;
+
 class info{
 	public :
 	info()
@@ -78,11 +80,13 @@ class info{
 		file = NULL;
 		status = 1;
 		was_read = 0;
+		first_enter = 0;
 		is_hinged = 0;
 	}
 	~info()
 	{
-		delete file;
+		if (file)
+			delete file;
 	}
 	int was_read;
 	int waitpid_ret;
@@ -92,10 +96,12 @@ class info{
 	int size;
 	int status;
 	int is_hinged;
+	int first_enter;
 	std::string path;
 	std::string containte;
 	std::ifstream *file;
 	std::string buffer_to_send;
+	std::string cgi_buffer;
 };
 
 class method_get
@@ -122,9 +128,7 @@ class method_get
 	void file_handling();
 	void handle_auto_index();
 	// error handling
-	void set_error_404();
-	void set_error_500();
-	void set_error_403();
+	void set_error(const char  *str);
 	void set_not_allowed();
 	void check_location();
 	void send_indexing(DIR *dir);

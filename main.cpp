@@ -4,6 +4,7 @@ int	main(int argc, char **argv)
 {
 	try
 	{
+		signal(SIGPIPE, SIG_IGN);
 		Servers 	servers;
 		if (argc != 2)
 			throw std::invalid_argument("Invalid number of arguments.");
