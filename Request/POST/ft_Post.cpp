@@ -63,13 +63,15 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         size_t breack = (*body).find("\r\n\r\n");
         headers_cgi = (*body).substr(0, breack);
         body_cgi = (*body).substr(breack + 4);
+        cl = convert_to_str((body_cgi).length());
     }
     if (client->cgi)
     {
         res_total = client->header.statuscode + "\r\n"\
-        + "Content-Type: application/x-httpd-php\r\n" \
+        + "Content-Type: text/html\r\n" \
+        + "Content-Length:" + *cl + "\r\n" \
         + headers_cgi + "\r\n\r\n" \
-        + body_cgi;
+        + body_cgi;      
     }
     else
     {
