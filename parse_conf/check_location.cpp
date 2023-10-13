@@ -156,7 +156,7 @@ void	checkLocationReturn(Locations &location, std::istringstream &iss)
 			location.setReturn(value);
 		}
 	}
-	if (location.getIndex().empty())
+	if (location.getReturn().empty())
 		throw std::runtime_error("The location return directive is empty or contains only whitespaces.");
 	else if (location.getReturn().size() != 2)
 		throw std::runtime_error("The location return directive is invalid.");

@@ -1,4 +1,20 @@
+<?php
+echo "Content-Length: 900\r\n\r\n";
+?>
 <html>
-    echo "Content-Length: 5\r\n\r\n"
-    echo "Hello"
+<body>
+
+<form action="" method="get">
+Name: <input type="text" name="name"><br>
+E-mail: <input type="text" name="email"><br>
+<input type="submit">
+<?php  
+    if ($_GET["name"])
+    {
+        echo "You submitted a name that is " . $_GET["name"];
+    }
+        ?>
+</form>
+
+</body>
 </html>
