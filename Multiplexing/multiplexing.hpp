@@ -45,6 +45,7 @@ typedef struct s_client_info {
 	bool					is_multipart;
 	bool					isCookieSet;
 	bool					isSession;
+	bool					isRedirection;
 	size_t					times;
 	size_t					bl;
 	size_t					binary_data_start;

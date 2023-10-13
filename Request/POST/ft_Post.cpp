@@ -73,6 +73,11 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         + headers_cgi + "\r\n\r\n" \
         + body_cgi;      
     }
+    else if (client->isRedirection)
+    {
+         res_total = client->header.statuscode + "\r\n"\
+        + "Location: " + client->working_location.getReturn()[1] + "\r\n";
+    }
     else
     {
         res_total = client->header.statuscode + "\r\n"\
@@ -481,6 +486,13 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
         int ret;
         if (is_Req_Err(client->working_location, client, client->directive))
             return 3;
+        if (client->working_location.getReturn().size() > 0)
+        {
+            client.isRedirection = true;
+            client->header.isError = false;
+            client->header.status = client->working_location.getReturn()[0];
+            return 2;
+        }
         ret = ft_my_Post(client);
 	    if (ret == 3)
         {
