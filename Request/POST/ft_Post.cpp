@@ -31,6 +31,7 @@ std::string* get_body(t_client_info *client, Directives &working)
     return body;
 }
 
+
 void response(t_client_info* client, std::vector<int> clientSockets, std::vector<Directives> &servers)
 {
     (void)servers;
@@ -39,6 +40,8 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     
     std::string *body;
     std::string *cl;
+    std::string headers_cgi;
+    std::string body_cgi;
     if (client->header.isError)
     {
         body = get_body(client, client->directive);
@@ -55,18 +58,33 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         body = new std::string("");
         cl = new std::string("0");
     }
-    // delete client->header.path_p;
-    res_total = client->header.statuscode + "\r\n"\
-    "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
-    "Server: 0rph1no/1.1\r\n" \
-    "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\r\n" \
-    "ETag: \"56d-9989200-1132c580\"\r\n" \
-    "Content-Type: application/x-httpd-php\r\n" \
-    "Content-Length: "+*cl+"\r\n" \
-    "Accept-Ranges: bytes\r\n" \
-    "Connection: close\r\n" \
-    "\r\n" \
-    + *body;
+    if (client->cgi)
+    {
+        size_t breack = (*body).find("\r\n\r\n");
+        headers_cgi = (*body).substr(0, breack);
+        body_cgi = (*body).substr(breack + 4);
+    }
+    if (client->cgi)
+    {
+        res_total = client->header.statuscode + "\r\n"\
+        + "Content-Type: application/x-httpd-php\r\n" \
+        + headers_cgi + "\r\n\r\n" \
+        + body_cgi;
+    }
+    else
+    {
+        res_total = client->header.statuscode + "\r\n"\
+        "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
+        "Server: 0rph1no/1.1\r\n" \
+        "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\r\n" \
+        "ETag: \"56d-9989200-1132c580\"\r\n" \
+        "Content-Type: text/html\r\n" \
+        "Content-Length: "+*cl+"\r\n" \
+        "Accept-Ranges: bytes\r\n" \
+        "Connection: close\r\n" \
+        "\r\n" \
+        + *body;
+    }
     const char *res = res_total.c_str();
     send(client->socket, res, strlen(res), 0);
     delete cl;
@@ -115,6 +133,15 @@ std::string get_header_value(t_client_info* client, const char *name, size_t len
     return ret;
 }
 
+std::string grab_filename_from_url(std::string& req)
+{
+    std::string ret;
+    req = req.substr(0, req.find("\r\n"));
+    req = req.substr(req.find(" ")+1, (req.find("HTTP/1.1") - 6));
+    ret = req.substr(req.rfind("/")+1);
+    return ret;
+}
+
 std::string* handle_cgi(t_client_info *client, Directives& working)
 {
     std::string *ret = new std::string();
@@ -139,10 +166,11 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             std::string PHP_SELF;
             Content_Type = "Content_Type=" + get_header_value(client, "Content-Type", 14);
             Content_Length = "Content-Length=" +  std::to_string(get_length(client->fst_req));
-            Url_Path =  "Url_Path=" + grab_path(client->fst_req);
+            Url_Path =  "SCRIPT_FILENAME=" + client->working_location.getRoot() +  "/" +grab_filename_from_url(client->fst_req);
             Path_Info = "Path_Info="+ client->working_location.getCgi()[".php"];
             Server_Name = "Server_Name=" + working.getServerName();
             PHP_SELF = "PHP_SELF="+grab_path(client->fst_req);
+            std::cout << Url_Path << std::endl;
             close(fd[0]);
             dup2(fd[1], 1);
             close(fd[1]);
@@ -158,7 +186,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             argv[0] = strdup(client->working_location.getCgi()[".php"].c_str());
             argv[1] = strdup(filename.c_str());
             argv[2] = NULL;
-            std::cout << argv[0] << " ------ " << argv[1] << std::endl;
             execve(argv[0], argv, envp);
             exit(0);
         }
@@ -170,7 +197,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
         std::cout << *ret << std::endl;
         if (ret->find("Content-Length") != std::string::npos)
         {
-            std::cout << "ach fiha" << std::endl;
             size_t val = get_length(*ret);
             *ret = (*ret).substr(0,val);
         }
