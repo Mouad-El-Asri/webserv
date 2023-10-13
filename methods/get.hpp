@@ -75,11 +75,13 @@ class info{
 	public :
 	info()
 	{
+		std::cout << "info constructor" << std::endl;
 		socket = 0;
 		size = 0;
 		file = NULL;
 		status = 1;
 		was_read = 0;
+		first_enter = 0;
 		first_enter = 0;
 		is_hinged = 0;
 	}
@@ -96,6 +98,7 @@ class info{
 	int size;
 	int status;
 	int is_hinged;
+	int no_content_length;
 	int first_enter;
 	std::string path;
 	std::string containte;

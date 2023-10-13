@@ -1,5 +1,5 @@
 <?php
-echo "Content-Length: 900\r\n\r\n";
+    start_
 ?>
 <html>
 <body>
@@ -13,7 +13,7 @@ E-mail: <input type="text" name="email"><br>
     {
         echo "You submitted a name that is " . $_GET["name"];
     }
-        ?>
+    ?>
 </form>
 
 </body>

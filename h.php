@@ -4,9 +4,7 @@ $words = str_repeat("133337 133371337 138888 137 1337 1337 1337 1337 1337 1337 1
 
 
 // Printing out the retrieved values
-
-// Set the content length header manually
-echo "Content-Length: " . strlen($words) . "\r\n\r\n";
+// echo "Content-Length: 100\r\n\r\n";
 
 // Set the content type header manually
 $method = $_SERVER['REQUEST_METHOD'];
