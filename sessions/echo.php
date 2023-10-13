@@ -13,7 +13,7 @@ E-mail: <input type="text" name="email"><br>
     {
         echo "You submitted a name that is " . $_GET["name"];
     }
-    ?>
+        ?>
 </form>
 
 </body>
