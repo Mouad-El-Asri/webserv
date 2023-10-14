@@ -220,13 +220,25 @@ void	runServer(Servers &servers)
 			if (FD_ISSET(client->socket, &tempReads))
 			{
 				client->received = recv(client->socket, client->request, 60000, 0);
+				int flag = 0;
 				if (client->times == 0)
 				{
 					std::string requestString(client->request);
-					newStr = requestString.substr(requestString.find("Host:") + 6);
+					size_t hostPos = requestString.find("Host:");
+					if (hostPos != std::string::npos)
+					{
+						hostPos += 6;
+						size_t endPos = requestString.find("\r\n", hostPos);
+						if (endPos != std::string::npos)
+							host = requestString.substr(hostPos, endPos - hostPos);
+						else
+							flag = 1;
+					}
+					else
+						flag = 1;
 					host = newStr.substr(0, newStr.find("\r\n"));
 				}
-				if (client->times == 0 && serversVec[client->serverIndex].getServerName() != host)
+				if (client->times == 0 && flag == 0 && serversVec[client->serverIndex].getServerName() != host)
 				{
 					for (size_t i = 0; i < client->similarServers.size(); i++)
 					{

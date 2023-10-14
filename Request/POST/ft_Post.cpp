@@ -488,7 +488,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             return 3;
         if (client->working_location.getReturn().size() > 0)
         {
-            client.isRedirection = true;
+            client->isRedirection = true;
             client->header.isError = false;
             client->header.status = client->working_location.getReturn()[0];
             return 2;
