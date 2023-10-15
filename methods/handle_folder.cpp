@@ -64,7 +64,7 @@ void	method_get::handle_auto_index()
 	{
 		if (this->path[this->path.size() - 1] != '/')
 		{
-			infa.buffer_to_send = "HTTP1.1/ 301 Moved Permanently\r\nLocation: ";
+			infa.buffer_to_send = "HTTP/1.1 301 Moved Permanently\r\nLocation: ";
 			infa.buffer_to_send += url + "/";
 			infa.buffer_to_send += "\r\n\r\n";
 			infa.status = 1;

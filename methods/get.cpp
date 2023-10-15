@@ -54,16 +54,15 @@ void read_cgi_output(info& infa) {
 					{
 						headers = buf.substr(0, buf.find("\r\n\r\n"));
 						if (headers.find("Content-Type: ") != std::string::npos)
-							content_type + headers.substr(headers.find("Content-Type: "), headers.find("\r\n") - headers.find("Content-Type: ")) + "\r\nContent-Length: ";
+							content_type = headers.substr(headers.find("Content-Type: ") + 14, headers.find("\r\n") -  headers.find("Content-Type: ") - 14);
 						else
 							content_type = "text/html";
 						if (headers.find("Content-Length: ") == std::string::npos)
 						{
 							infa.no_content_length = -1;
 						
-						}else 
-						{
-							content_lenght = headers.substr(headers.find("Content-Length: ") + 16, headers.find("\r\n") -  headers.find("Content-Length: ") -16);
+						}else {
+							content_lenght = headers.substr(headers.find("Content-Length: ") + 16, headers.find("\r\n") -  headers.find("Content-Length: ") - 16);
 							size = std::atoi(content_lenght.c_str());
 							if (size == 0)
 								return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n", temp);
@@ -191,14 +190,13 @@ void method_get::execute_cgi(std::string& path, std::string& arguments, std::str
     }
 }
 
-int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion, std::string arguments)
+int check_is_cgi(std::string& path, std::string& real_path, std::string& extansion, std::string& arguments)
 {	
 	
 	if (path.find(".php") != std::string::npos)
 	{
 		if (path.find(".php") + 4 == path.find("?"))
 		{
-			
 			extansion = ".php";
 			real_path = path.substr(0, path.find("?"));
 			arguments = "QUERY_STRING=" + path.substr(path.find("?") + 1, path.size());
