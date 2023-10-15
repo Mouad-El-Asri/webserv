@@ -27,7 +27,7 @@ ft_delete::ft_delete(Directives& k, std::string l, info &inf) : method_get(k, l,
 	}
 	catch (std::exception &e)
 	{
-		// std::cout << "DELETE : "<< e.what() << std::endl;
+		std::cout << "DELETE : "<< e.what() << std::endl;
 		infa.status = 1;
 		return ;
 	}
@@ -119,7 +119,6 @@ void ft_delete::location_check()
 				max_lenght = size;
 				this->route = keep.getLocationsVec()[i].getRoot();
 				path = route + url.substr(size, url.size());
-				// std::cout << "path: " << path << std::endl;
 				is_checked = 1;
 				forbidden = 0;
 			}

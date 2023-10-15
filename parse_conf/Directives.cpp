@@ -15,6 +15,8 @@ Directives::Directives()
 	this->errorPages["501"] = "default_error_pages/501.html";
 	this->errorPages["503"] = "default_error_pages/503.html";
 	this->errorPages["505"] = "default_error_pages/505.html";
+	this->errorPages["502"] = "default_error_pages/502.html";
+	this->errorPages["504"] = "default_error_pages/504.html";
 	this->maxBodySizeInBytes = -1;
 	this->index.clear();
 	this->root = "";

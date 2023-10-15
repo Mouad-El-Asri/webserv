@@ -75,7 +75,6 @@ class info{
 	public :
 	info()
 	{
-		std::cout << "info constructor" << std::endl;
 		socket = 0;
 		size = 0;
 		file = NULL;
@@ -84,22 +83,27 @@ class info{
 		first_enter = 0;
 		first_enter = 0;
 		is_hinged = 0;
+		there_cgi = 0;
 	}
 	~info()
 	{
-		if (file)
-			delete file;
+		// if (file)
+		// 	delete file;
 	}
+
 	int was_read;
 	int waitpid_ret;
 	int pipe;
 	int pid;
 	int socket;
+	time_t start;
 	int size;
 	int status;
 	int is_hinged;
 	int no_content_length;
+	int there_cgi;
 	int first_enter;
+	std::map<std::string, std::string> error_pages ;
 	std::string path;
 	std::string containte;
 	std::ifstream *file;
@@ -155,6 +159,6 @@ class ft_delete : public method_get
 };
 
 void ft_get(Directives &data, std::string url,  info &socket);
-
+void set_error(std::map<std::string, std::string> error_pages, info &inf, std::string error, std::string header);
 
 #endif

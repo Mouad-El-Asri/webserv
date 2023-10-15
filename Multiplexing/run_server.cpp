@@ -7,6 +7,7 @@ void set_error(std::map<std::string, std::string> error_pages, info &inf, std::s
 	std::stringstream ss;
 	std::string ext;
 	std::string path = error_pages[error];
+	std::cout << path <<std::endl;
 	inf.file = new std::ifstream(path.c_str(), std::ios::binary);
 	if (!inf.file->is_open())
 	{
@@ -18,8 +19,9 @@ void set_error(std::map<std::string, std::string> error_pages, info &inf, std::s
 	}
 	stat(path.c_str(),  &st);
 	inf.size = st.st_size;
+	ss << inf.size;
 	header += ss.str();
-	header += "\r\n\r\n";
+	header += "\r\n\r\n ";
 	inf.buffer_to_send = header;
 	inf.status = 0;
 
@@ -52,10 +54,12 @@ int check_content_lenght(std::string &headers, info *client)
 }
 int  check_which_method(std::string& headers, t_client_info *client, fd_set &writes, std::vector<int> &clientSockets, std::vector<Directives> &serversVec)
 {
+	std::cout << "qqqq" << std::endl;
 	int ret;
 	try {
 	if (client->times == 0)
 	{
+		client->Info->socket = client->socket;
 		int start = headers.find(" ") + 1;
 		client->method = headers.substr(0, headers.find(" "));
 		client->url = headers.substr(start, headers.find(" ", start) - start);
@@ -63,14 +67,17 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		if (check_spaces(headers) != 2 )
 		{
 			std::cout << "\e\e[91mError : Bad Request\e[0m" << std::endl;
-			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "400", "HTTP/1.1 400 Bad Request\r\nContent-Type: test/html\r\nContent-Length: ");
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "400", "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\nContent-Length: ");
+			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
 			return 1;
 		}
 		if (client->method != "GET" && client->method != "POST" && client->method != "DELETE")
 		{
+			std::cout << client->socket << std::endl;
 			std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
-			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "405", "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: test/html\r\nContent-Length: ");
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "405", "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: ");
+			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
 
 			return 1;
@@ -78,7 +85,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		if (version != "HTTP/1.1")
 		{
 			std::cout << "\e\e[91mError : HTTP Version Not Supported\e[0m" << std::endl;
-			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "505", "HTTP/1.1 505 Method Not Allowed\r\nContent-Type: test/html\r\nContent-Length: ");
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "505", "HTTP/1.1 505 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: ");
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
 			return 1;
@@ -103,6 +110,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	}
 	else if (client->method == "POST")
 	{
+
 		client->method = "POST";
 		ret = handle_Post(clientSockets, serversVec, client);
 		std::cout << ret << std::endl;

@@ -37,7 +37,15 @@ void read_cgi_output(info& infa) {
 	std::string body;
 	std::stringstream ss;
     std::string str;
-    static std::ofstream temp(".file.txt");
+	// try {
+	// 	std::remove(".file.txt");
+	// }
+	// catch(std::exception &e)
+	// {
+	// 		set_error(infa.error_pages, infa, "500", "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ");
+	// 		return ;
+	// }
+    static std::ofstream temp(".file.txt", std::ios::out | std::ios::trunc);
     std::string content_type = "text/html";
 	std::string content_lenght;
 	std::string headers;
@@ -173,6 +181,7 @@ void method_get::execute_cgi(std::string& path, std::string& arguments, std::str
     } else {
         close(fd[1]);
         int status;
+		time(&infa.start);
         infa.waitpid_ret = waitpid(pid, &status, WNOHANG);
 
         if (infa.waitpid_ret == -1) {
@@ -390,6 +399,7 @@ method_get::method_get(Directives& k , std::string url, info &inf) : infa(inf) ,
 	auto_index = k.getAutoIndex();
 	this->url = url;
 	infa.path = path;
+	infa.error_pages = k.getErrorPages();
 	this->erros_page = k.getErrorPages();
 	this->set_extasion();
 }
@@ -421,7 +431,10 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 	{
 		std::cout << "\e[91mGet : \e[42mError : an error occured with the socket " << clientes.socket <<  ", while sending the file\e[0m" << std::endl;
 		if (clientes.file)
+		{
 			clientes.file->close();
+			delete clientes.file;
+		}
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}
@@ -429,7 +442,10 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 	{
 		std::cout << "\e[91mGet : \e[42mThe file is empty the send function returns 0  \e[0m" << std::endl;
 		if (clientes.file)
+		{
 			clientes.file->close();
+			delete clientes.file;
+		}
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}
@@ -438,13 +454,15 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 void send_header_in_response(info &clientes, t_client_info *client_write , t_client_info **clients, fd_set &reads, fd_set &writes)
 {
 	std::cout << "\e[96mGET : \e[42mSending header to the socket " << clientes.socket << "\e[0m" << std::endl;
-	std::cout << "Th eheader is " << clientes.buffer_to_send << std::endl;
 	int i =  send(clientes.socket, clientes.buffer_to_send.c_str(), clientes.buffer_to_send.size(), 0);
 	if (i < 0)
 	{
 		std::cout << "\e[91mGet : \e[42mError : an error occured with the socket " << clientes.socket <<  ", while sending the header\e[0m" << std::endl;
 		if (clientes.file)
+		{
 			clientes.file->close();
+			delete clientes.file;
+		}
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}
@@ -452,7 +470,10 @@ void send_header_in_response(info &clientes, t_client_info *client_write , t_cli
 	{
 		std::cout << "\e[91mGet : \e[42mThe header is empty the send function returns 0  \e[0m" << std::endl;
 		if (clientes.file)
+		{
 			clientes.file->close();
+			delete clientes.file;
+		}
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}
@@ -476,6 +497,24 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 				std::cout << "\e[96mGET : \e[42mHnadle cgi in response\e[0m" << std::endl;
 				read_cgi_output(clientes);			
 		}
+		time_t end;
+		time(&end);
+		if (difftime(end, clientes.start) >= 5)
+		{
+			set_error(clientes.error_pages, clientes, "504", "HTTP/1.1 504 Gateway Timeout\r\nContent-Type: text/html\r\nContent-Length: " );
+			clientes.status = 1;
+			clientes.is_hinged = 0;
+			kill(clientes.pid, SIGKILL);
+		}
+		if (WIFEXITED(status) != 0)
+		{
+			if (WEXITSTATUS(status) != 0)
+			{
+			set_error(clientes.error_pages, clientes, "502", "HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html\r\nContent-Length: " );
+			clientes.status = 1;
+			clientes.is_hinged = 0;
+			}
+		}
 		return ;
 	}
 	if (clientes.status == 1)
@@ -485,7 +524,10 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 	else
 	{
 		if (clientes.file)
+		{
 			clientes.file->close();
+			delete clientes.file;
+		}
 		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "Method GET is end\e[0m" << std::endl;
 		drop_client(client_write, clients, reads, writes);
 		return ;

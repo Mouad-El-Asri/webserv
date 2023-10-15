@@ -1,3 +1,6 @@
 khasni nhandli exit erro ta3 cgi and khasni nhandli timeout dial cgi 
 i need to add some oop design to code
 Anas: version grabbing error, if tested using nc you should add '\n' if tested using postman you shouldnt
+
+
+anas == kain wahed lblan dila cgi kaketeb file and katb9a fih data 

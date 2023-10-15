@@ -28,7 +28,6 @@ void	method_get::set_error(const char  *str)
 		infa.status = 1;
 		infa.file->close();
 		infa.file = NULL;
-		std::cout << "error occure" << std::endl;
 		return;
 	}
 	stat(path.c_str() , &st);

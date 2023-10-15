@@ -528,7 +528,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
 		    handle_chunked_encoding(client, client->req_body);
             client->header.isError = false;
             client->header.status = "201";
-            client->header.statuscode = "HTTP/1.1 202 Created";
+            client->header.statuscode = "HTTP/1.1 201 Created";
             return 0;
         }
         if (ret == 0)
@@ -536,7 +536,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             handle_content_length(client, client->req_body,client->binary_data_start);
             client->header.isError = false;
             client->header.status = "201";
-            client->header.statuscode = "HTTP/1.1 203 Created";
+            client->header.statuscode = "HTTP/1.1 201 Created";
             return 1;
         }
     return 2;
