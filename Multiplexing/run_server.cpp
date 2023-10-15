@@ -105,7 +105,8 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 	{
 		client->method = "POST";
 		ret = handle_Post(clientSockets, serversVec, client);
-		if (ret == 2 && client->isRedirection)
+		std::cout << ret << std::endl;
+		if (ret == 5 || ret == 4)
 		{
 			if (!FD_ISSET(client->socket, &writes))
 				FD_SET(client->socket, &writes);

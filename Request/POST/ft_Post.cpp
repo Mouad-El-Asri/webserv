@@ -38,8 +38,8 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     (void)clientSockets;
     std::string res_total;
     
-    std::string *body;
-    std::string *cl;
+    std::string *body = NULL;
+    std::string *cl = NULL;
     std::string headers_cgi;
     std::string body_cgi;
     if (client->header.isError)
@@ -47,38 +47,43 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         body = get_body(client, client->directive);
         cl = convert_to_str((*body).length());
     }
-    else if (client->cgi)
+    else if (client->isRedirection && !client->header.isError)
+    {
+        res_total = client->header.statuscode + "\r\n"\
+        + "Location: " + client->working_location.getReturn()[1] + "\r\n";
+    }
+    else if (client->cgi && !client->header.isError)
     {
             body = handle_cgi(client, client->directive);
             cl = convert_to_str((*body).length());
-        // client->header.statuscode = "HTTP/1.1 200 Forbidden";
     }
     else
     {
         body = new std::string("");
         cl = new std::string("0");
     }
-    if (client->cgi)
+    if (client->cgi && !client->isRedirection && !client->header.isError)
     {
         size_t breack = (*body).find("\r\n\r\n");
-        headers_cgi = (*body).substr(0, breack);
-        body_cgi = (*body).substr(breack + 4);
+        if (breack != std::string::npos)
+        {
+            headers_cgi = (*body).substr(0, breack);
+            body_cgi = (*body).substr(breack + 4);
+        }
+        else
+        {
+            headers_cgi = "";
+            body_cgi = body->substr(0, 5);
+        }  
         cl = convert_to_str((body_cgi).length());
-    }
-    if (client->cgi)
-    {
         res_total = client->header.statuscode + "\r\n"\
         + "Content-Type: text/html\r\n" \
         + "Content-Length:" + *cl + "\r\n" \
-        + headers_cgi + "\r\n\r\n" \
-        + body_cgi;      
+        + headers_cgi + ((headers_cgi != "") ? "\r\n\r\n" : "\r\n") \
+        + body_cgi;
+        std::cout << res_total << std::endl; 
     }
-    else if (client->isRedirection)
-    {
-         res_total = client->header.statuscode + "\r\n"\
-        + "Location: " + client->working_location.getReturn()[1] + "\r\n";
-    }
-    else
+    else if (!client->isRedirection)
     {
         res_total = client->header.statuscode + "\r\n"\
         "Date: Thu, 19 Feb 2009 12:27:04 GMT\r\n" \
@@ -91,11 +96,14 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         "Connection: close\r\n" \
         "\r\n" \
         + *body;
+        std::cerr << res_total << std::endl;
     }
     const char *res = res_total.c_str();
     send(client->socket, res, strlen(res), 0);
-    delete cl;
-    delete body;
+    if (cl)
+        delete cl;
+    if (body)
+        delete body;
 }
 
 std::string grab_path(std::string& req)
@@ -149,10 +157,20 @@ std::string grab_filename_from_url(std::string& req)
     return ret;
 }
 
+std::string get_file_ext(std::string& req)
+{
+    // PHP_SELF=/cgi-bin/test.php
+    std::string ret;
+    req = req.substr(req.rfind("/"));
+    ret = req.substr(req.rfind("."));
+    return ret;
+}
+
 std::string* handle_cgi(t_client_info *client, Directives& working)
 {
-    std::string *ret = new std::string();
-    std::string filename = client->header.path_p.substr(client->header.path_p.rfind("/"));
+        
+        std::string *ret = new std::string();
+        std::string filename = client->header.path_p.substr(client->header.path_p.rfind("/"));
         (void)working;
         int fd[2];
         pid_t pid;
@@ -171,12 +189,15 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             std::string Path_Info;
             std::string Server_Name;
             std::string PHP_SELF;
+            std::string Extenstion;
+            // std::string *ext = get_ext(Content_Type);
+            PHP_SELF = "PHP_SELF="+grab_path(client->fst_req);
+            Extenstion =  get_file_ext(PHP_SELF);
             Content_Type = "Content_Type=" + get_header_value(client, "Content-Type", 14);
             Content_Length = "Content-Length=" +  std::to_string(get_length(client->fst_req));
             Url_Path =  "SCRIPT_FILENAME=" + client->working_location.getRoot() +  "/" +grab_filename_from_url(client->fst_req);
-            Path_Info = "Path_Info="+ client->working_location.getCgi()[".php"];
+            Path_Info = "Path_Info="+ client->working_location.getCgi()[Extenstion];
             Server_Name = "Server_Name=" + working.getServerName();
-            PHP_SELF = "PHP_SELF="+grab_path(client->fst_req);
             std::cout << Url_Path << std::endl;
             close(fd[0]);
             dup2(fd[1], 1);
@@ -190,7 +211,7 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             envp[6] = strdup(Server_Name.c_str());
             envp[7] = strdup(PHP_SELF.c_str());
             envp[8] = NULL;
-            argv[0] = strdup(client->working_location.getCgi()[".php"].c_str());
+            argv[0] = strdup(client->working_location.getCgi()[Extenstion].c_str());
             argv[1] = strdup(filename.c_str());
             argv[2] = NULL;
             execve(argv[0], argv, envp);
@@ -201,7 +222,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
         bzero(buf, sizeof(buf));
         read(fd[0], buf, 1023);
         *ret = buf;
-        std::cout << *ret << std::endl;
         if (ret->find("Content-Length") != std::string::npos)
         {
             size_t val = get_length(*ret);
@@ -263,12 +283,13 @@ std::string* get_ext(std::string& req)
     int ctype = req.find("Content-Type:");
     *ret = req.substr(ctype+14, req.find("\r\n",ctype+1)-(ctype+14));
     *ret = (*ret).substr((*ret).find("/")+1);
+    if (*ret == "x-httpd-php")
+        *ret = "php";
     return ret;
 }
 
 void handle_content_length(t_client_info* client ,std::string& req_body, int binary_data_start)
 {
-    std::cout << "2 times" << std::endl;
         std::ofstream img;
         const char* data;
         std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
@@ -340,7 +361,7 @@ int ft_my_Post(t_client_info *client)
     }
     if (client->req_body.find("Content-Length") != std::string::npos && client->times == 0) {
         if (client->req_body.find("\r\n\r\n") + 5 > (size_t)client->received)
-            return 0;
+            return 4;
         client->is_content_length = true;
     }
     if (client->is_content_length)
@@ -366,7 +387,7 @@ int ft_my_Post(t_client_info *client)
     if (!client->is_chunked_encoding) {
         if (client->req_body.find("Transfer-Encoding: chunked") != std::string::npos) {
             if (client->req_body.find("\r\n\r\n") + 10 > (size_t)client->received)
-                return 0;
+                return 4;
             if (client->req_body.find("multipart/form-data") != std::string::npos)
             {
                 client->header.filename = get_filename(client->req_body);
@@ -479,7 +500,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             }
         }
     }
-        if (client->working_location.getCgi()[".php"] != "" && client->header.file_path.find(".php") != std::string::npos)
+        if (client->header.file_path.find(".py") != std::string::npos || client->header.file_path.find(".php") != std::string::npos)
         {
             client->cgi = true;
         }
@@ -491,23 +512,31 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             client->isRedirection = true;
             client->header.isError = false;
             client->header.status = client->working_location.getReturn()[0];
-            return 2;
+            client->header.statuscode = "HTTP/1.1 " + client->header.status + " Redirected";
+            return 5;
         }
         ret = ft_my_Post(client);
+        if (ret == 4)
+        {
+            client->header.isError = false;
+            client->header.status = "201";
+            client->header.statuscode = "HTTP/1.1 201 Created";
+            return 4;
+        }
 	    if (ret == 3)
         {
 		    handle_chunked_encoding(client, client->req_body);
             client->header.isError = false;
-            client->header.status = "200";
-            client->header.statuscode = "HTTP/1.1 200 OK";
+            client->header.status = "201";
+            client->header.statuscode = "HTTP/1.1 202 Created";
             return 0;
         }
         if (ret == 0)
         {
             handle_content_length(client, client->req_body,client->binary_data_start);
             client->header.isError = false;
-            client->header.status = "200";
-            client->header.statuscode = "HTTP/1.1 200 OK";
+            client->header.status = "201";
+            client->header.statuscode = "HTTP/1.1 203 Created";
             return 1;
         }
     return 2;

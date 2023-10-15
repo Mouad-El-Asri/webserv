@@ -42,7 +42,7 @@ int	createListeningSocket(std::string &host, int &port)
 	freeaddrinfo(bind_address);
 
 	// std::cout << "Listening on " << host << ":" << port << "..." << std::endl;
-	listen_res = listen(socket_listen, 10);
+	listen_res = listen(socket_listen, 128);
 	if (listen_res == -1)
 		throw std::runtime_error("Listen failed: Unable to start listening for incoming connections.");
 

@@ -34,5 +34,6 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
 void handle_chunked_encoding(t_client_info* client, const std::string& chunked_data);
 std::string* grab_method(std::string& req);
 int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &servers, t_client_info *client);
+std::string* get_ext(std::string& req);
 
 #endif
