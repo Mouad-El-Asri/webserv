@@ -23,8 +23,8 @@ void	parse_servers(Servers &servers)
 			for (size_t j = 0; j < locationsSize; j++) {
 				if (locationsVec[j].getLocation() == "")
 					throw std::runtime_error("The location directive syntax is invalid.");
-				else if (locationsVec[j].getRoot() == "")
-					throw std::runtime_error("The location directive root doesn't exist.");
+				else if (locationsVec[j].getRoot() == "" && serversVec[i].getRoot() == "")
+					throw std::runtime_error("The root directive doesn't exist.");
 				else if (locationsVec[j].getAcceptedMethods()["POST"] == false && \
 						locationsVec[j].getAcceptedMethods()["GET"] == false && \
 						locationsVec[j].getAcceptedMethods()["DELETE"] == false)
