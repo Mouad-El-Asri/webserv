@@ -73,10 +73,11 @@ class method_get;
 
 class info{
 	public :
-	info()
+	info() 
 	{
 		socket = 0;
 		size = 0;
+		temp = NULL;
 		file = NULL;
 		status = 1;
 		was_read = 0;
@@ -90,6 +91,10 @@ class info{
 		// if (file)
 		// 	delete file;
 	}
+	char * rand()
+	{
+
+	}
 
 	int was_read;
 	int waitpid_ret;
@@ -102,6 +107,7 @@ class info{
 	int is_hinged;
 	int no_content_length;
 	int there_cgi;
+	std::ofstream *temp;
 	int first_enter;
 	std::map<std::string, std::string> error_pages ;
 	std::string path;

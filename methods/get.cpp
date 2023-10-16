@@ -20,7 +20,8 @@
 void set_headerto_send(info& inf, std::string headers, std::ofstream& temp)
 {
 	inf.buffer_to_send = headers;
-	temp.close();
+	inf.temp->close();
+	delete inf.temp;
 	inf.status = 1;
 	inf.is_hinged = 0;
 	close(inf.pipe);
@@ -28,25 +29,24 @@ void set_headerto_send(info& inf, std::string headers, std::ofstream& temp)
 
 
 void read_cgi_output(info& infa) {
-
     static size_t size = 0;
+	infa.there_cgi = 1;
 	struct stat st;
 	size_t readed = 0;
     char Buff[1501];
     std::string buf;
 	std::string body;
 	std::stringstream ss;
+	std::string namefile;
     std::string str;
-	// try {
-	// 	std::remove(".file.txt");
-	// }
-	// catch(std::exception &e)
-	// {
-	// 		set_error(infa.error_pages, infa, "500", "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ");
-	// 		return ;
-	// }
-    static std::ofstream temp(".file.txt", std::ios::out | std::ios::trunc);
-    std::string content_type = "text/html";
+	if (infa.first_enter == 0)
+	{
+		ss << infa.socket;
+		ss  << ".txt";
+		namefile = ss.str();
+		infa.temp = new std::ofstream(namefile.c_str());
+	}
+	std::string content_type = "text/html";
 	std::string content_lenght;
 	std::string headers;
     if (infa.first_enter == 0) {
@@ -87,7 +87,7 @@ void read_cgi_output(info& infa) {
 					try {
 						if (readed > size && infa.no_content_length != -1)
 						{
-							temp << body.substr(0, size);
+							infa.temp << body.substr(0, size);
 							temp.close();
 							infa.file = new std::ifstream(".file.txt");
 							infa.size = size;
@@ -96,6 +96,7 @@ void read_cgi_output(info& infa) {
 						}
 						else
 						{
+							std::cout << "hamiid" << std::endl;
 							temp << body;
 							size -= readed;
 						}
@@ -145,6 +146,7 @@ void method_get::execute_cgi(std::string& path, std::string& arguments, std::str
     pid_t pid;
     char *argv[4];
     std::string str;
+
     char *envp[5];
     struct stat st;
 
@@ -180,6 +182,7 @@ void method_get::execute_cgi(std::string& path, std::string& arguments, std::str
         exit(0);
     } else {
         close(fd[1]);
+
         int status;
 		time(&infa.start);
         infa.waitpid_ret = waitpid(pid, &status, WNOHANG);
@@ -433,6 +436,8 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 		if (clientes.file)
 		{
 			clientes.file->close();
+			if (clientes.there_cgi == 1)
+				std::remove(".file.txt");
 			delete clientes.file;
 		}
 		drop_client(client_write, clients, reads, writes);
@@ -444,6 +449,8 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 		if (clientes.file)
 		{
 			clientes.file->close();
+			// if (clientes.there_cgi == 1)
+			// 	std::remove(".file.txt");
 			delete clientes.file;
 		}
 		drop_client(client_write, clients, reads, writes);
@@ -526,6 +533,8 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 		if (clientes.file)
 		{
 			clientes.file->close();
+			// if (clientes.there_cgi == 1)
+			// 	std::remove(".file.txt");
 			delete clientes.file;
 		}
 		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "Method GET is end\e[0m" << std::endl;
