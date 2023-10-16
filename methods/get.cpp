@@ -20,7 +20,8 @@
 void set_headerto_send(info& inf, std::string headers)
 {
 	inf.buffer_to_send = headers;
-	temp.close();
+	inf.temp->close();
+	delete inf.temp;
 	inf.status = 1;
 	inf.is_hinged = 0;
 	close(inf.pipe);
@@ -28,7 +29,6 @@ void set_headerto_send(info& inf, std::string headers)
 
 
 void read_cgi_output(info& infa) {
-	std::cout << "rani dkhelt " << std::endl;
     static size_t size = 0;
 	infa.there_cgi = 1;
 	struct stat st;
@@ -83,7 +83,7 @@ void read_cgi_output(info& infa) {
 						infa.buffer_to_send = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ";
 						body = buf;
 					}
-					try  {
+					try {
 						if (readed > size && infa.no_content_length != -1)
 						{
 							*infa.temp << body.substr(0, size);
