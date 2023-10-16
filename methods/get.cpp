@@ -17,7 +17,7 @@
 
 
 // hndling cgi
-void set_headerto_send(info& inf, std::string headers, std::ofstream& temp)
+void set_headerto_send(info& inf, std::string headers)
 {
 	inf.buffer_to_send = headers;
 	temp.close();
@@ -37,9 +37,16 @@ void read_cgi_output(info& infa) {
     std::string buf;
 	std::string body;
 	std::stringstream ss;
+	std::stringstream sss;
+	std::string namefile;
     std::string str;
-    static std::ofstream temp(".file.txt", std::ios::out | std::ios::trunc);
-    std::string content_type = "text/html";
+	if (infa.first_enter == 0)
+	{
+		sss << infa.socket + 55;
+		infa.filename = sss.str() + ".txt";
+		infa.temp = new std::ofstream(infa.filename.c_str());
+	}
+	std::string content_type = "text/html";
 	std::string content_lenght;
 	std::string headers;
     if (infa.first_enter == 0) {
@@ -47,9 +54,9 @@ void read_cgi_output(info& infa) {
 					readed = read(infa.pipe, Buff, 1500);
 					Buff[readed] = '\0';
 					if (readed == 0)
-						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n\r\n", temp);
+						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n\r\n");
 					else if (readed < 0)
-						return set_headerto_send(infa , "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 25\r\n\r\n<h1>Internel server error<h1>", temp);
+						return set_headerto_send(infa , "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 25\r\n\r\n<h1>Internel server error<h1>");
 					buf = Buff;
 					if (buf.find("\r\n\r\n") != std::string::npos)
 					{
@@ -66,7 +73,7 @@ void read_cgi_output(info& infa) {
 							content_lenght = headers.substr(headers.find("Content-Length: ") + 16, headers.find("\r\n") -  headers.find("Content-Length: ") - 16);
 							size = std::atoi(content_lenght.c_str());
 							if (size == 0)
-								return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n", temp);
+								return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n");
 						}
 						body = buf.substr(buf.find("\r\n\r\n") + 4, buf.size() - buf.find("\r\n\r\n") - 4);
 					}
@@ -75,28 +82,26 @@ void read_cgi_output(info& infa) {
 						infa.no_content_length = -1;
 						infa.buffer_to_send = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: ";
 						body = buf;
-
 					}
 					try  {
 						if (readed > size && infa.no_content_length != -1)
 						{
-							temp << body.substr(0, size);
-							temp.close();
-							infa.file = new std::ifstream(".file.txt");
+							*infa.temp << body.substr(0, size);
+							infa.file = new std::ifstream(infa.filename.c_str());
 							infa.size = size;
-							set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+							set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: " + content_type + "\r\nContent-Length: " + content_lenght + "\r\n\r\n");
 							return ;
 						}
 						else
 						{
-							temp << body;
+							*infa.temp << body;
 							size -= readed;
 						}
 					}
 					catch(std::exception &e)
 					{
 						std::cout << "\e[91mError : \e[42man execption is thrown => : " << e.what() << "\e[0m" << std::endl;
-						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n", temp);
+						return set_headerto_send(infa , "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
 					}
 		}
 		else if (infa.first_enter == 1)
@@ -105,28 +110,31 @@ void read_cgi_output(info& infa) {
 			Buff[readed] = '\0';
 			if (readed == 0)
 			{
-				temp.close();
-				infa.file = new std::ifstream(".file.txt");
+				infa.file = new std::ifstream(infa.filename.c_str());
+				infa.temp->close();
 				if (infa.no_content_length == -1)
 				{
-					stat(".file.txt", &st);
-					ss  << st.st_size;
+					stat(infa.filename.c_str(), &st);
+					ss << st.st_size;
 					content_lenght = ss.str();
 				}
-				set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: "+ content_type +"\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+				set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: "+ content_type +"\r\nContent-Length: " + content_lenght + "\r\n\r\n");
 				return ;
 			}
 			else if (readed < 0)
-				return set_headerto_send(infa , "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 25\r\n\r\n<h1>Internel server error<h1>", temp);
+				return set_headerto_send(infa , "HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/html\r\nContent-Length: 25\r\n\r\n<h1>Internel server error<h1>");
 			else if (readed  >= size && infa.no_content_length != -1)
 			{
-				temp.close();
-				set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: "+  content_type  +"\r\nContent-Length: " + content_lenght + "\r\n\r\n", temp);
+				*infa.temp << body.substr(0, size);
+				infa.file = new std::ifstream(infa.filename.c_str());
+				if (infa.file->is_open() == false)
+					std::cout << "file is not open" << std::endl;
+				set_headerto_send(infa, "HTTP/1.1 200 OK\r\nContent-Type: "+  content_type  +"\r\nContent-Length: " + content_lenght + "\r\n\r\n");
 				return ;			
 			}
 			else 
 			{
-				temp << body;
+				*infa.temp << body;
 				size -= readed;
 			}
 		}
@@ -422,14 +430,14 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 	int reading = clientes.file->gcount();
 	std::cout << "\e[96mGET : \e[42mSending data to the socket " << clientes.socket << "\e[0m" << std::endl;
 	int sending   = send(clientes.socket, bu, reading, 0) ;
-	if	(sending < 0) // here it will check if the send function returns -1 , if it does it will close the socket and drop the client
+	if	(sending < 0)
 	{
 		std::cout << "\e[91mGet : \e[42mError : an error occured with the socket " << clientes.socket <<  ", while sending the file\e[0m" << std::endl;
 		if (clientes.file)
 		{
 			clientes.file->close();
 			if (clientes.there_cgi == 1)
-				std::remove(".file.txt");
+				std::remove(clientes.filename.c_str());
 			delete clientes.file;
 		}
 		drop_client(client_write, clients, reads, writes);
@@ -441,8 +449,8 @@ void send_file_in_response(info &clientes, t_client_info *client_write , t_clien
 		if (clientes.file)
 		{
 			clientes.file->close();
-			// if (clientes.there_cgi == 1)
-			// 	std::remove(".file.txt");
+			if (clientes.there_cgi == 1)
+				std::remove(clientes.filename.c_str());
 			delete clientes.file;
 		}
 		drop_client(client_write, clients, reads, writes);
@@ -460,6 +468,8 @@ void send_header_in_response(info &clientes, t_client_info *client_write , t_cli
 		if (clientes.file)
 		{
 			clientes.file->close();
+			if (clientes.there_cgi == 1)
+				std::remove(clientes.filename.c_str());
 			delete clientes.file;
 		}
 		drop_client(client_write, clients, reads, writes);
@@ -470,7 +480,9 @@ void send_header_in_response(info &clientes, t_client_info *client_write , t_cli
 		std::cout << "\e[91mGet : \e[42mThe header is empty the send function returns 0  \e[0m" << std::endl;
 		if (clientes.file)
 		{
-			clientes.file->close();
+			clientes.file->close();		
+			if (clientes.there_cgi == 1)
+				std::remove(clientes.filename.c_str());
 			delete clientes.file;
 		}
 		drop_client(client_write, clients, reads, writes);
@@ -525,11 +537,11 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 		if (clientes.file)
 		{
 			clientes.file->close();
-			// if (clientes.there_cgi == 1)
-			// 	std::remove(".file.txt");
+			if (clientes.there_cgi == 1)
+				std::remove(clientes.filename.c_str());
 			delete clientes.file;
 		}
-		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "Method GET is end\e[0m" << std::endl;
+		std::cout << "\e[96mGET : \e[41mClosing the socket " << clientes.socket << "Method GET is ended here . \e[0m" << std::endl;
 		drop_client(client_write, clients, reads, writes);
 		return ;
 	}

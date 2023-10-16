@@ -104,6 +104,7 @@ class info{
 	int no_content_length;
 	int there_cgi;
 	std::ofstream *temp;
+	std::string filename;
 	int first_enter;
 	std::map<std::string, std::string> error_pages ;
 	std::string path;

@@ -54,7 +54,6 @@ int check_content_lenght(std::string &headers, info *client)
 }
 int  check_which_method(std::string& headers, t_client_info *client, fd_set &writes, std::vector<int> &clientSockets, std::vector<Directives> &serversVec)
 {
-	std::cout << "qqqq" << std::endl;
 	int ret;
 	try {
 	if (client->times == 0)
