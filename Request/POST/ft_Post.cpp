@@ -61,9 +61,18 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
             catch(std::exception& e)
             {
                 delete body;
+                if (strcmp(e.what(), "Child cgi exited") == 0)
+                {
                 // std::cout << "dlkhl liha" << std::endl;
-                client->header.status = "504";
-                client->header.statuscode = "HTTP/1.1 504 Gateway timeout";
+                client->header.status = "502";
+                client->header.statuscode = "HTTP/1.1 502 Gateway timeout";
+                }
+                else
+                {
+                // std::cout << "dlkhl liha" << std::endl;
+                    client->header.status = "504";
+                    client->header.statuscode = "HTTP/1.1 504 Gateway timeout";
+                }
                 body = get_body(client, client->directive);
                 client->header.isError = true;
             }
@@ -245,11 +254,11 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             waitpid(pid, &status, WNOHANG);
             if (WIFEXITED(status))
             {
-                // if (WEXITSTATUS(status) != 0)
-                // {
-                //     flag = 2;
-                //     break;
-                // }
+                if (WEXITSTATUS(status) != 0)
+                {
+                    flag = 2;
+                    break;
+                }
                 flag = 0;
                 break;
             }
@@ -259,11 +268,11 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             kill(pid, SIGKILL);
             throw std::runtime_error("Child cgi hanged");
         }
-        // else if (flag == 2)
-        // {
-        //     kill(pid, SIGKILL);
-        //     throw std::runtime_error("Child cgi hanged");
-        // }
+        else if (flag == 2)
+        {
+            kill(pid, SIGKILL);
+            throw std::runtime_error("Child cgi exited");
+        }
         bzero(buf, sizeof(buf));
         read(fd[0], buf, 1023);
         *ret = buf;
