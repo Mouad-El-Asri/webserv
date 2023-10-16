@@ -54,7 +54,19 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     }
     else if (client->cgi && !client->header.isError)
     {
-            body = handle_cgi(client, client->directive);
+            try
+            {
+                body = handle_cgi(client, client->directive);
+            }
+            catch(std::exception& e)
+            {
+                delete body;
+                // std::cout << "dlkhl liha" << std::endl;
+                client->header.status = "504";
+                client->header.statuscode = "HTTP/1.1 504 Gateway timeout";
+                body = get_body(client, client->directive);
+                client->header.isError = true;
+            }
             cl = convert_to_str((*body).length());
     }
     else
@@ -81,7 +93,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         + "Content-Length:" + *cl + "\r\n" \
         + headers_cgi + ((headers_cgi != "") ? "\r\n\r\n" : "\r\n") \
         + body_cgi;
-        std::cout << res_total << std::endl; 
+        // std::cout << res_total << std::endl; 
     }
     else if (!client->isRedirection)
     {
@@ -180,6 +192,7 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
         std::string str;
         pipe(fd);
         pid = fork();
+        client->Info->start = time(NULL);
         if (pid == 0)
         {
             filename = "cgi-bin"+filename;
@@ -218,7 +231,39 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             exit(0);
         }
         close(fd[1]);
-        wait(NULL);
+        int flag = 0;
+        int status;
+        time_t now = time(NULL);
+        while(1)
+        {
+            if (difftime(now, client->Info->start) > 5)
+            {
+                flag = 1;
+                break;
+            }
+            now = time(NULL);
+            waitpid(pid, &status, WNOHANG);
+            if (WIFEXITED(status))
+            {
+                // if (WEXITSTATUS(status) != 0)
+                // {
+                //     flag = 2;
+                //     break;
+                // }
+                flag = 0;
+                break;
+            }
+        }
+        if (flag == 1)
+        {
+            kill(pid, SIGKILL);
+            throw std::runtime_error("Child cgi hanged");
+        }
+        // else if (flag == 2)
+        // {
+        //     kill(pid, SIGKILL);
+        //     throw std::runtime_error("Child cgi hanged");
+        // }
         bzero(buf, sizeof(buf));
         read(fd[0], buf, 1023);
         *ret = buf;
@@ -319,12 +364,15 @@ void handle_chunked_encoding(t_client_info* client, std::string& chunked_data) {
     std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
     img.open(upload.c_str(), std::ios::binary);
     size_t pos = 0;
-    // size_t isthere = chunked_data.find("-");
-    // if (client->is_multipart && isthere != std::string::npos)
-    // {
-    //     chunked_data = chunked_data.substr(0, isthere);
-    //     std::cout << chunked_data << std::endl;
-    // }
+    size_t isthere = chunked_data.find("----------------");
+    if (client->is_multipart && isthere != std::string::npos)
+    {
+        chunked_data = chunked_data.substr(0, isthere);
+        chunked_data += "0\r\n\r\n";
+    }
+    // std::cout << chunked_data << std::endl;
+    // std::cout << chunked_data << std::endl;
+    // std::cout << chunked_data.length() << std::endl;
     while (pos < chunked_data.length()) {
         size_t chunk_size_end = chunked_data.find("\r\n", pos);
         if (chunk_size_end == std::string::npos)
@@ -332,7 +380,7 @@ void handle_chunked_encoding(t_client_info* client, std::string& chunked_data) {
 
         chunk_size_str = chunked_data.substr(pos, chunk_size_end - pos);
         chunk_size = hextodec(chunk_size_str.c_str());
-        if (chunk_size == 0)
+        if (chunk_size == 0 || chunk_size_str.find("--------") != std::string::npos)
             break;
 
         pos = chunk_size_end + 2; // Move past "\r\n"

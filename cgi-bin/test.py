@@ -1,1 +1,2 @@
-print("hamid")
+while(1):
+    continue
