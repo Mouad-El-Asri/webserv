@@ -73,40 +73,39 @@ class method_get;
 
 class info{
 	public :
-	info() 
+	info()
 	{
+		std::cout << "info constructor" << std::endl;
 		socket = 0;
 		size = 0;
-		temp = NULL;
 		file = NULL;
+		temp = NULL;
 		status = 1;
 		was_read = 0;
 		first_enter = 0;
 		first_enter = 0;
 		is_hinged = 0;
-		there_cgi = 0;
 	}
 	~info()
 	{
-		// if (file)
-		// 	delete file;
+		if (file)
+			delete file;
 	}
-
 	int was_read;
 	int waitpid_ret;
 	int pipe;
 	int pid;
 	int socket;
-	time_t start;
 	int size;
+	time_t start;
+	std::ofstream *temp;
+	std::string filename;
+	std::map<std::string, std::string> error_pages ;
+	int there_cgi;
 	int status;
 	int is_hinged;
 	int no_content_length;
-	int there_cgi;
-	std::ofstream *temp;
-	std::string filename;
 	int first_enter;
-	std::map<std::string, std::string> error_pages ;
 	std::string path;
 	std::string containte;
 	std::ifstream *file;
