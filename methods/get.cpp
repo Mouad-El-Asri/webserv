@@ -20,8 +20,7 @@
 void set_headerto_send(info& inf, std::string headers, std::ofstream& temp)
 {
 	inf.buffer_to_send = headers;
-	inf.temp->close();
-	delete inf.temp;
+	temp.close();
 	inf.status = 1;
 	inf.is_hinged = 0;
 	close(inf.pipe);
@@ -29,6 +28,7 @@ void set_headerto_send(info& inf, std::string headers, std::ofstream& temp)
 
 
 void read_cgi_output(info& infa) {
+	std::cout << "rani dkhelt " << std::endl;
     static size_t size = 0;
 	infa.there_cgi = 1;
 	struct stat st;
@@ -37,16 +37,9 @@ void read_cgi_output(info& infa) {
     std::string buf;
 	std::string body;
 	std::stringstream ss;
-	std::string namefile;
     std::string str;
-	if (infa.first_enter == 0)
-	{
-		ss << infa.socket;
-		ss  << ".txt";
-		namefile = ss.str();
-		infa.temp = new std::ofstream(namefile.c_str());
-	}
-	std::string content_type = "text/html";
+    static std::ofstream temp(".file.txt", std::ios::out | std::ios::trunc);
+    std::string content_type = "text/html";
 	std::string content_lenght;
 	std::string headers;
     if (infa.first_enter == 0) {
@@ -84,10 +77,10 @@ void read_cgi_output(info& infa) {
 						body = buf;
 
 					}
-					try {
+					try  {
 						if (readed > size && infa.no_content_length != -1)
 						{
-							infa.temp << body.substr(0, size);
+							temp << body.substr(0, size);
 							temp.close();
 							infa.file = new std::ifstream(".file.txt");
 							infa.size = size;
@@ -96,7 +89,6 @@ void read_cgi_output(info& infa) {
 						}
 						else
 						{
-							std::cout << "hamiid" << std::endl;
 							temp << body;
 							size -= readed;
 						}

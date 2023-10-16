@@ -71,7 +71,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
                 {
                 // std::cout << "dlkhl liha" << std::endl;
                     client->header.status = "504";
-                    client->header.statuscode = "HTTP/1.1 504 Gateway timeout";
+                    client->header.statuscode = "HTTP/1.1 504 Bad Gateway";
                 }
                 body = get_body(client, client->directive);
                 client->header.isError = true;

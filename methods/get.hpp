@@ -91,10 +91,6 @@ class info{
 		// if (file)
 		// 	delete file;
 	}
-	char * rand()
-	{
-
-	}
 
 	int was_read;
 	int waitpid_ret;
