@@ -85,6 +85,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     }
     if (client->cgi && !client->isRedirection && !client->header.isError)
     {
+        int flag = 0;
         size_t breack = (*body).find("\r\n\r\n");
         if (breack != std::string::npos)
         {
@@ -96,10 +97,25 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
             headers_cgi = "";
             body_cgi = body->substr(0, 5);
         }
+        if (headers_cgi.find("Content-Length") != std::string::npos)
+        {
+            flag = 1;
+            size_t val = get_length(headers_cgi);
+            size_t len = body_cgi.length();
+            if (val > len)
+            {
+                std::cout << "dkhlat" << std::endl;
+                body_cgi = body_cgi.substr(0,len);
+            }
+            else
+                body_cgi = body_cgi.substr(0,val);
+        }
         cl = convert_to_str((body_cgi).length());
+        // std::cout << body_cgi << " ||||" << cl << std::endl;
+        // exit(3);
         res_total = client->header.statuscode + "\r\n"\
         + "Content-Type: text/html\r\n" \
-        + "Content-Length:" + cl + "\r\n" \
+        + ((flag == 0) ? "\r\nContent-Length:" + cl + "\r\n" : "") \
         + headers_cgi + ((headers_cgi != "") ? "\r\n\r\n" : "\r\n") \
         + body_cgi;
     }
@@ -116,9 +132,11 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         "Connection: close\r\n" \
         "\r\n" \
         + *body;
-        std::cerr << res_total << std::endl;
+        // std::cerr << res_total << std::endl;
     }
     const char *res = res_total.c_str();
+    std::cout << res << std::endl;
+    // exit(3);
     send(client->socket, res, strlen(res), 0);
     if (body)
         delete body;
@@ -275,11 +293,6 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
         bzero(buf, sizeof(buf));
         read(fd[0], buf, 1023);
         *ret = buf;
-        if (ret->find("Content-Length") != std::string::npos)
-        {
-            size_t val = get_length(*ret);
-            *ret = (*ret).substr(0,val);
-        }
         return ret;
 }
 
@@ -499,6 +512,14 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
             return true;
         }
         if (temp.find("Content-Length") != std::string::npos && temp.find("Transfer-Encoding") != std::string::npos)
+        {
+            client->times++;
+            client->header.isError = true;
+            client->header.status = "400";
+            client->header.statuscode = "HTTP/1.1 400 Bad Request";
+            return true;
+        }
+        if (temp.find("Content-Length") == std::string::npos && temp.find("Transfer-Encoding") == std::string::npos)
         {
             client->times++;
             client->header.isError = true;
