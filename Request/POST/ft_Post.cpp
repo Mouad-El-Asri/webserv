@@ -9,12 +9,12 @@ std::string* grab_method(std::string& req)
     return ret;
 }
 
-std::string* convert_to_str(size_t len)
+std::string convert_to_str(size_t len)
 {
     std::stringstream ss;
     ss << len;
-    std::string *ret = new std::string();
-    ss >> *ret;
+    std::string ret;
+    ss >> ret;
     return ret;
 }
 
@@ -39,7 +39,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     std::string res_total;
     
     std::string *body = NULL;
-    std::string *cl = NULL;
+    std::string cl;
     std::string headers_cgi;
     std::string body_cgi;
     if (client->header.isError)
@@ -60,18 +60,18 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
             }
             catch(std::exception& e)
             {
+                std::cout << "" << std::endl;
                 delete body;
                 if (strcmp(e.what(), "Child cgi exited") == 0)
                 {
-                // std::cout << "dlkhl liha" << std::endl;
                 client->header.status = "502";
-                client->header.statuscode = "HTTP/1.1 502 Gateway timeout";
+                client->header.statuscode = "HTTP/1.1 502 Bad Gateway";
                 }
                 else
                 {
                 // std::cout << "dlkhl liha" << std::endl;
                     client->header.status = "504";
-                    client->header.statuscode = "HTTP/1.1 504 Bad Gateway";
+                    client->header.statuscode = "HTTP/1.1 504 Gateway Timeout";
                 }
                 body = get_body(client, client->directive);
                 client->header.isError = true;
@@ -81,7 +81,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     else
     {
         body = new std::string("");
-        cl = new std::string("0");
+        cl = "0";
     }
     if (client->cgi && !client->isRedirection && !client->header.isError)
     {
@@ -95,14 +95,13 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         {
             headers_cgi = "";
             body_cgi = body->substr(0, 5);
-        }  
+        }
         cl = convert_to_str((body_cgi).length());
         res_total = client->header.statuscode + "\r\n"\
         + "Content-Type: text/html\r\n" \
-        + "Content-Length:" + *cl + "\r\n" \
+        + "Content-Length:" + cl + "\r\n" \
         + headers_cgi + ((headers_cgi != "") ? "\r\n\r\n" : "\r\n") \
         + body_cgi;
-        // std::cout << res_total << std::endl; 
     }
     else if (!client->isRedirection)
     {
@@ -112,7 +111,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         "Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\r\n" \
         "ETag: \"56d-9989200-1132c580\"\r\n" \
         "Content-Type: text/html\r\n" \
-        "Content-Length: "+*cl+"\r\n" \
+        "Content-Length: "+cl+"\r\n" \
         "Accept-Ranges: bytes\r\n" \
         "Connection: close\r\n" \
         "\r\n" \
@@ -121,8 +120,6 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     }
     const char *res = res_total.c_str();
     send(client->socket, res, strlen(res), 0);
-    if (cl)
-        delete cl;
     if (body)
         delete body;
 }
@@ -265,11 +262,13 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
         }
         if (flag == 1)
         {
+            delete ret;
             kill(pid, SIGKILL);
             throw std::runtime_error("Child cgi hanged");
         }
         else if (flag == 2)
         {
+            delete ret;
             kill(pid, SIGKILL);
             throw std::runtime_error("Child cgi exited");
         }

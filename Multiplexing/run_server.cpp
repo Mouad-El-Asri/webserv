@@ -171,7 +171,6 @@ void	runServer(Servers &servers)
 	std::vector<int> serverSockets(serversVec.size());
 	std::vector<int> clientSockets;
 	std::string host;
-	std::string newStr;
 
 	for (size_t i = 0; i < serversVec.size(); i++)
 	{
@@ -244,7 +243,6 @@ void	runServer(Servers &servers)
 					}
 					else
 						flag = 1;
-					host = newStr.substr(0, newStr.find("\r\n"));
 				}
 				if (client->times == 0 && flag == 0 && serversVec[client->serverIndex].getServerName() != host)
 				{
