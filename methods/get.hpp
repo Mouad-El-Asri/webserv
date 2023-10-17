@@ -94,6 +94,8 @@ class info{
 	int was_read;
 	int waitpid_ret;
 	int pipe;
+ 	std::string content_lenght;
+	std::string content_type;
 	int pid;
 	int socket;
 	int size;

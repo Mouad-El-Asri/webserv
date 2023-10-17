@@ -75,7 +75,7 @@ int  check_which_method(std::string& headers, t_client_info *client, fd_set &wri
 		{
 			std::cout << client->socket << std::endl;
 			std::cout << "\e\e[91mError : Method Not Allowed or Not Implemented\e[0m" << std::endl;
-			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "405", "HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/html\r\nContent-Length: ");
+			set_error(serversVec[client->serverIndex].getErrorPages(), *client->Info, "501", "HTTP/1.1 501 Not Implemented\r\nContent-Type: text/html\r\nContent-Length: ");
 			client->Info->status = 1;
 			FD_SET(client->socket, &writes);
 
