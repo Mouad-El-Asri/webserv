@@ -54,6 +54,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
     }
     else if (client->cgi && !client->header.isError)
     {
+            std::cout << "" << std::endl;
             try
             {
                 body = handle_cgi(client, client->directive);
@@ -114,7 +115,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         // std::cout << body_cgi << " ||||" << cl << std::endl;
         // exit(3);
         res_total = client->header.statuscode + "\r\n"\
-        + "Content-Type: text/html\r\n" \
+        + "Content-Type: text/html" \
         + ((flag == 0) ? "\r\nContent-Length:" + cl + "\r\n" : "") \
         + headers_cgi + ((headers_cgi != "") ? "\r\n\r\n" : "\r\n") \
         + body_cgi;
@@ -265,29 +266,29 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
                 flag = 1;
                 break;
             }
-            now = time(NULL);
             waitpid(pid, &status, WNOHANG);
+            now = time(NULL);
+        }
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) != 0)
                 {
                     flag = 2;
-                    break;
                 }
                 flag = 0;
-                break;
             }
-        }
         if (flag == 1)
         {
             delete ret;
             kill(pid, SIGKILL);
+            wait(NULL);
             throw std::runtime_error("Child cgi hanged");
         }
         else if (flag == 2)
         {
             delete ret;
             kill(pid, SIGKILL);
+            wait(NULL);
             throw std::runtime_error("Child cgi exited");
         }
         bzero(buf, sizeof(buf));
@@ -497,6 +498,8 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
     {
         if (loc.getLocation() == "")
         {
+            std::cout << loc.getRoot() << std::endl;
+            exit(1); 
             client->times++;
             client->header.isError = true;
             client->header.status = "403";
@@ -575,7 +578,13 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
                 client->working_location = locations[i];
                 break;
             }
+            else
+            {
+                client->working_location = locations[0];
+            }
+
         }
+        std::cout << client->working_location.getLocation() << std::endl;
     }
         if (client->header.file_path.find(".py") != std::string::npos || client->header.file_path.find(".php") != std::string::npos)
         {

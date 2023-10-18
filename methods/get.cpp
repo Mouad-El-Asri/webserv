@@ -508,7 +508,7 @@ void	get_response(info &clientes, t_client_info *client_write , t_client_info **
 			clientes.status = 1;
 			clientes.is_hinged = 0;
 			kill(clientes.pid, SIGKILL);
-			waitpid(clientes.pid, &status, WNOHANG);
+			waitpid(clientes.pid, NULL, 0);
 		}
 		return ;
 	}
