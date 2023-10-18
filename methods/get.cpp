@@ -145,7 +145,7 @@ void method_get::execute_cgi(std::string& path, std::string& arguments, std::str
     pid_t pid;
     char *argv[4];
     std::string str;
-    char *envp[5];
+    char *envp[6];
     struct stat st;
 
     if (stat(path.c_str(), &st) == -1) {
@@ -170,11 +170,13 @@ void method_get::execute_cgi(std::string& path, std::string& arguments, std::str
         envp[0] = strdup("REQUEST_METHOD=GET");
         str = "PATH_INFO=" + path;
         envp[1] = strdup(str.c_str());
+		str  ="SCRIPT_FILENAME=" + path;
+        envp[2] = strdup(str.c_str());
         if (!arguments.empty()) {
-            envp[2] = strdup(arguments.c_str());
-            envp[3] = NULL;
+            envp[3] = strdup(arguments.c_str());
+            envp[4] = NULL;
         } else {
-            envp[2] = NULL;
+            envp[3] = NULL;
         }
         execve(run_it.c_str(), argv, envp);
         exit(0);
