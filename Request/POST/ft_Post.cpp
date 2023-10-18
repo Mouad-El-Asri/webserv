@@ -105,7 +105,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
             size_t len = body_cgi.length();
             if (val > len)
             {
-                std::cout << "dkhlat" << std::endl;
+                // std::cout << "dkhlat" << std::endl;
                 body_cgi = body_cgi.substr(0,len);
             }
             else
@@ -136,7 +136,7 @@ void response(t_client_info* client, std::vector<int> clientSockets, std::vector
         // std::cerr << res_total << std::endl;
     }
     const char *res = res_total.c_str();
-    std::cout << res << std::endl;
+    // std::cout << res << std::endl;
     // exit(3);
     send(client->socket, res, strlen(res), 0);
     if (body)
@@ -503,8 +503,6 @@ bool is_Req_Err(Locations& loc, t_client_info *client, Directives &working)
     {
         if (loc.getLocation() == "")
         {
-            std::cout << loc.getRoot() << std::endl;
-            exit(1); 
             client->times++;
             client->header.isError = true;
             client->header.status = "403";
@@ -589,7 +587,7 @@ int handle_Post(std::vector<int> &clientSockets, std::vector<Directives> &server
             }
 
         }
-        std::cout << client->working_location.getLocation() << std::endl;
+        // std::cout << client->working_location.getLocation() << std::endl;
     }
         if (client->header.file_path.find(".py") != std::string::npos || client->header.file_path.find(".php") != std::string::npos)
         {
