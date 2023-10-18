@@ -51,6 +51,7 @@ typedef struct s_client_info {
 	size_t					binary_data_start;
 	bool					finished;
 	std::string				req_body;
+	std::string				uploaded_name;
 	Request					header;
 	Locations				working_location;
 	std::string				method;

@@ -236,7 +236,8 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
             Url_Path =  "SCRIPT_FILENAME=" + client->working_location.getRoot() +  "/" +grab_filename_from_url(client->fst_req);
             Path_Info = "Path_Info="+ client->working_location.getCgi()[Extenstion];
             Server_Name = "Server_Name=" + working.getServerName();
-            std::cout << Url_Path << std::endl;
+            // std::cout << Url_Path << std::endl;
+            std::freopen(client->uploaded_name.c_str(), "r", stdin);
             close(fd[0]);
             dup2(fd[1], 1);
             close(fd[1]);
@@ -266,17 +267,19 @@ std::string* handle_cgi(t_client_info *client, Directives& working)
                 flag = 1;
                 break;
             }
-            waitpid(pid, &status, WNOHANG);
             now = time(NULL);
-        }
+            waitpid(pid, &status, WNOHANG);
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) != 0)
                 {
                     flag = 2;
+                    break;
                 }
                 flag = 0;
+                break;
             }
+        }
         if (flag == 1)
         {
             delete ret;
@@ -361,6 +364,7 @@ void handle_content_length(t_client_info* client ,std::string& req_body, int bin
         const char* data;
         std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
         // std::cout << upload << std::endl;
+        client->uploaded_name = upload;
         img.open(upload.c_str(), std::ios::binary);
         if (img.is_open())
         {
@@ -384,6 +388,7 @@ void handle_chunked_encoding(t_client_info* client, std::string& chunked_data) {
     std::string chunk_size_str;
     size_t chunk_size;
     std::string upload = client->working_location.getUploadStore() + "/" +client->header.filename;
+    client->uploaded_name = upload;
     img.open(upload.c_str(), std::ios::binary);
     size_t pos = 0;
     size_t isthere = chunked_data.find("----------------");
